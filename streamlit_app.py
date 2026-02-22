@@ -33,11 +33,14 @@ if 'show_auth' not in st.session_state:
 
 # REAL FIREBASE BRIDGE: Check for auth callback via query params
 if not st.session_state.logged_in:
-    q_params = st.query_params
-    if q_params.get("auth_success") == "true":
+    # Use a more resilient way to check params
+    params = st.query_params
+    if params.get("auth_success") == "true":
         st.session_state.logged_in = True
-        st.session_state.user_name = q_params.get("user_name", "Explorer")
-        st.query_params.clear() # Clean URL
+        st.session_state.user_name = params.get("user_name", "Explorer")
+        st.session_state.show_auth = None
+        # Clear params and rerun
+        st.query_params.clear()
         st.rerun()
 
 # Firebase Config (Shared with Next.js)
@@ -313,11 +316,13 @@ if st.session_state.show_auth:
                 firebase.auth().signInWithPopup(provider)
                     .then((result) => {{
                         const user = result.user;
-                        const name = encodeURIComponent(user.displayName);
-                        // Bridge back to Streamlit via parent URL update
-                        window.parent.location.search = `?auth_success=true&user_name=${{name}}`;
+                        const name = encodeURIComponent(user.displayName || user.email.split('@')[0]);
+                        // Robust redirect using full parent URL
+                        const baseUrl = window.parent.location.origin + window.parent.location.pathname;
+                        window.parent.location.href = baseUrl + `?auth_success=true&user_name=${{name}}`;
                     }}).catch((error) => {{
-                        console.error(error);
+                        console.error("Auth Error:", error);
+                        alert("Authentication failed: " + error.message);
                     }});
             }}
         </script>
@@ -347,7 +352,7 @@ if st.session_state.show_auth:
             st.markdown('<div style="text-align:center; margin-top:20px; color:var(--text-sub); font-size:14px;">— OR —</div>', unsafe_allow_html=True)
             
             # REAL FIREBASE GOOGLE AUTH BRIDGE
-            components.html(auth_html, height=70)
+            components.html(auth_html, height=75, key="google_auth_bridge")
 
         else:
             name = st.text_input("Full Identity", placeholder="Your Name")
@@ -362,7 +367,7 @@ if st.session_state.show_auth:
             st.markdown('<div style="text-align:center; margin-top:20px; color:var(--text-sub); font-size:14px;">— OR —</div>', unsafe_allow_html=True)
             
             # REAL FIREBASE GOOGLE SIGNUP BRIDGE
-            components.html(auth_html, height=70)
+            components.html(auth_html, height=75, key="google_signup_bridge")
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Nevermind, take me back", key="close_auth"):

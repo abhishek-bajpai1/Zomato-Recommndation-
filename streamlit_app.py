@@ -6,8 +6,8 @@ from phase4.ranking_engine import rank_restaurants
 from phase3.llm_engine import RecommendationEngine
 from dotenv import load_dotenv
 
-# Load environment variables from the project root
-load_dotenv()
+# Load environment variables FIRST
+load_dotenv(override=True)
 
 # Set Page Config
 st.set_page_config(page_title="Zomato AI", page_icon="🍴", layout="wide", initial_sidebar_state="collapsed")
@@ -328,14 +328,26 @@ st.markdown(f"""
 # 4. SEARCH PILL
 @st.cache_data
 def load_data():
-    if not os.path.exists("zomato_data.csv"):
+    csv_path = "zomato_data.csv"
+    if not os.path.exists(csv_path):
         try:
             from phase1.data_loader import load_zomato_data_kaggle
             return load_zomato_data_kaggle()
         except: return None
-    return pd.read_csv("zomato_data.csv")
+    # Use encoding='utf-8' or 'latin-1' and handle errors to fix the garbage text
+    try:
+        return pd.read_csv(csv_path, encoding='utf-8')
+    except UnicodeDecodeError:
+        return pd.read_csv(csv_path, encoding='latin-1')
 
 df = load_data()
+
+# Data Cleaning for display
+if df is not None:
+    # Fix the garbage characters like CafÃ©
+    for col in ['restaurant name', 'cuisines type']:
+        if col in df.columns:
+            df[col] = df[col].apply(lambda x: str(x).encode('latin-1').decode('utf-8') if isinstance(x, str) and 'Ã' in x else x)
 
 # Category Selection Logic
 if 'selected_category' not in st.session_state:

@@ -344,10 +344,17 @@ df = load_data()
 
 # Data Cleaning for display
 if df is not None:
-    # Fix the garbage characters like CafÃ©
+    # Fix the garbage characters like CafÃ© and other encoding artifacts
     for col in ['restaurant name', 'cuisines type']:
         if col in df.columns:
-            df[col] = df[col].apply(lambda x: str(x).encode('latin-1').decode('utf-8') if isinstance(x, str) and 'Ã' in x else x)
+            def clean_text(text):
+                if not isinstance(text, str): return text
+                try:
+                    if 'Ã' in text:
+                        return text.encode('latin-1').decode('utf-8')
+                except: pass
+                return text.replace('ï¿½', '').strip()
+            df[col] = df[col].apply(clean_text)
 
 # Category Selection Logic
 if 'selected_category' not in st.session_state:
@@ -404,7 +411,20 @@ if df is not None:
     st.markdown('</div>', unsafe_allow_html=True)
 
     # 5. INTERACTIVE CATEGORY TILES
-    st.markdown('<div style="padding: 20px 10%; margin-bottom: 40px;">', unsafe_allow_html=True)
+    st.markdown('<div style="padding: 20px 10%; margin-bottom: 20px;">', unsafe_allow_html=True)
+    
+    # NEW: AI LOGIC TRANSPARENCY
+    with st.expander("🔍 See How recommendations are generated"):
+        st.markdown(f"""
+        ### The Zomato AI Logic:
+        1. **Filtering**: We scan **7,000+ restaurants** to find matches in **{location if location != "Any Location" else "Bangalore"}** for **{cuisine}**.
+        2. **Ranking**: We use a weighted formula:
+           - **70% Weight**: User Rating ({rating_num}+ ★)
+           - **30% Weight**: Popularity (Total Votes)
+        3. **AI Analysis**: The Top 3 results are sent to our **Groq LLM (Llama 3)**.
+        - The AI analyzes the specific menu and user craving to generate a **Personalized Verdict**.
+        """)
+
     st.markdown('<h3 style="text-align:center; margin-bottom:20px; color:var(--text-main); font-weight:700;">Explore categories</h3>', unsafe_allow_html=True)
     cat_cols = st.columns(3)
     

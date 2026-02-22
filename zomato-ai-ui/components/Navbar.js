@@ -1,8 +1,12 @@
 "use client";
 import React from 'react';
-import { MapPin, Search, ChevronDown } from 'lucide-react';
+import { MapPin, Search, ChevronDown, LogOut, User } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
+    const { user, logout } = useAuth();
+
     return (
         <nav style={{
             padding: '16px 0',
@@ -14,11 +18,13 @@ export default function Navbar() {
         }}>
             <div className="container flex items-center justify-between">
                 <div className="flex items-center gap-4" style={{ flex: 1 }}>
-                    <img
-                        src="https://b.zmtcdn.com/web_assets/b40b97e677bc7b2ca77c58c61db266fe1603954218.png"
-                        alt="Zomato"
-                        style={{ height: '28px' }}
-                    />
+                    <Link href="/">
+                        <img
+                            src="https://b.zmtcdn.com/web_assets/b40b97e677bc7b2ca77c58c61db266fe1603954218.png"
+                            alt="Zomato"
+                            style={{ height: '28px', cursor: 'pointer' }}
+                        />
+                    </Link>
 
                     <div style={{
                         display: 'flex',
@@ -59,9 +65,30 @@ export default function Navbar() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4" style={{ color: '#696969', fontSize: '18px', marginLeft: '32px' }}>
-                    <span>Log in</span>
-                    <span>Sign up</span>
+                <div className="flex items-center gap-6" style={{ color: '#696969', fontSize: '18px', marginLeft: '32px' }}>
+                    {user ? (
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
+                                {user.photoURL ? (
+                                    <img src={user.photoURL} alt="Profile" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                                ) : (
+                                    <div style={{ background: '#eee', padding: '6px', borderRadius: '50%' }}>
+                                        <User size={18} />
+                                    </div>
+                                )}
+                                <span style={{ fontSize: '16px', color: '#1c1c1c' }}>{user.displayName || user.email.split('@')[0]}</span>
+                            </div>
+                            <button onClick={logout} style={{ background: 'transparent', display: 'flex', alignItems: 'center', gap: '4px', color: '#696969' }}>
+                                <LogOut size={18} />
+                                <span style={{ fontSize: '16px' }}>Logout</span>
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <Link href="/login">Log in</Link>
+                            <Link href="/signup">Sign up</Link>
+                        </>
+                    )}
                 </div>
             </div>
         </nav>

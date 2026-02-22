@@ -16,133 +16,100 @@ if 'user_name' not in st.session_state:
 if 'show_auth' not in st.session_state:
     st.session_state.show_auth = None # 'login' or 'signup'
 
-# Custom CSS for Professional Dark UI
+# Custom CSS for Professional Light UI & Mobile Responsiveness
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
     :root {
         --zomato-red: #EF4F5F;
         --accent-orange: #ff5722;
+        --bg-color: #ffffff;
+        --surface-color: #f8f8f8;
+        --text-main: #1c1c1c;
+        --text-sub: #696969;
+        --border-color: #e8e8e8;
+        --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
     }
 
     /* Global Body Styling */
     .stApp {
-        font-family: 'Outfit', sans-serif !important;
-        background-color: #0d0d0d;
+        font-family: 'Inter', sans-serif !important;
+        background-color: var(--bg-color);
+        color: var(--text-main);
     }
 
     /* Hide Streamlit Header and Footer */
     header, footer {visibility: hidden;}
     #MainMenu {visibility: hidden;}
 
-    /* Clean Dark Header */
-    .header-wrapper {
-        background-color: #0d0d0d;
-        padding: 20px 5%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        border-bottom: 1px solid #1a1a1a;
-    }
-
+    /* Navigation Styling */
     .brand-logo {
-        color: white;
-        font-size: 26px;
+        color: var(--text-main);
+        font-size: 24px;
         font-weight: 800;
         letter-spacing: -0.5px;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
         cursor: pointer;
     }
 
     .brand-logo span {
-        color: var(--accent-orange);
+        color: var(--zomato-red);
     }
 
     .pill-nav {
-        background-color: rgba(255, 255, 255, 0.95);
+        background-color: white;
         border-radius: 100px;
-        padding: 8px 30px;
+        padding: 6px 24px;
         display: flex;
-        gap: 25px;
+        gap: 20px;
         align-items: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
     }
 
     .nav-item {
-        color: #1c1c1c;
-        font-weight: 600;
+        color: var(--text-sub);
+        font-weight: 500;
         font-size: 14px;
         text-decoration: none;
-        cursor: pointer;
-        transition: color 0.2s;
-    }
-
-    .nav-item:hover {
-        color: var(--accent-orange);
-    }
-
-    .header-right {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .auth-btn {
-        background: transparent;
-        border: 1px solid #333;
-        color: #ddd;
-        padding: 8px 18px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
         cursor: pointer;
         transition: all 0.2s;
     }
 
-    .auth-btn:hover {
-        background: #1e1e1e;
-        border-color: #555;
-        color: white;
-    }
-
-    .profile-trigger {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        border: 2px solid var(--accent-orange);
-        background: url('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80') center/cover;
-        cursor: pointer;
+    .nav-item:hover {
+        color: var(--zomato-red);
     }
 
     /* Hero Section */
     .hero-section {
-        height: 380px;
+        height: 320px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         color: white;
         text-align: center;
-        background: linear-gradient(rgba(13,13,13,0.6), rgba(13,13,13,0.8)), url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80') center/cover;
+        background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80') center/cover;
+        margin-bottom: 20px;
     }
 
     .hero-tagline {
-        font-size: 42px;
-        font-weight: 700;
+        font-size: clamp(28px, 5vw, 48px);
+        font-weight: 800;
         margin-bottom: 10px;
+        padding: 0 20px;
         letter-spacing: -1px;
     }
 
     /* Search Container */
     .search-outer {
         max-width: 1000px;
-        margin: -50px auto 40px auto;
+        margin: -60px auto 40px auto;
         padding: 0 20px;
         position: relative;
         z-index: 100;
@@ -150,59 +117,93 @@ st.markdown("""
 
     .search-pill-bg {
         background: white;
-        padding: 10px 20px;
-        border-radius: 60px;
-        border: 2px solid var(--accent-orange);
-        box-shadow: 0 15px 45px rgba(0,0,0,0.4);
-    }
-
-    /* Authenticate Overlay */
-    .auth-overlay {
-        background: rgba(0,0,0,0.8);
-        padding: 40px;
+        padding: 12px 24px;
         border-radius: 20px;
-        border: 1px solid #333;
-        max-width: 400px;
-        margin: 20px auto;
-        text-align: center;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-lg);
     }
 
     /* Result Cards */
     .res-card {
-        background: #1a1a1a;
-        border-radius: 20px;
+        background: white;
+        border-radius: 16px;
         overflow: hidden;
         margin-bottom: 25px;
-        border: 1px solid #222;
-        transition: transform 0.3s;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow-sm);
     }
-    .res-card:hover { transform: translateY(-5px); }
+    .res-card:hover { 
+        transform: translateY(-8px); 
+        box-shadow: var(--shadow-md);
+    }
 
     .rating-badge {
-        background: #ff5722;
+        background: #24963F; /* Zomato Green for ratings */
         color: white;
-        padding: 4px 10px;
-        border-radius: 6px;
+        padding: 2px 8px;
+        border-radius: 4px;
         font-weight: 700;
+        font-size: 14px;
     }
 
-    /* Streamlit Overrides */
+    /* Streamlit UI Overrides */
     .stSelectbox div[data-baseweb="select"] {
-        border: none !important;
-        background-color: transparent !important;
+        border: 1px solid transparent !important;
+        background-color: #f3f3f3 !important;
+        border-radius: 12px !important;
+        transition: 0.2s;
     }
-    .stSelectbox svg { color: #666 !important; }
+    .stSelectbox div[data-baseweb="select"]:hover {
+        border-color: #ddd !important;
+    }
+    
+    div[data-testid="stExpander"] {
+        border: none !important;
+        background: var(--surface-color) !important;
+        border-radius: 16px !important;
+    }
 
     .stButton > button {
-        background: var(--zomato-red) !important;
+        background-color: var(--zomato-red) !important;
         color: white !important;
-        border-radius: 10px !important;
-        height: 50px !important;
-        font-weight: 700 !important;
+        border-radius: 12px !important;
+        padding: 10px 24px !important;
+        font-weight: 600 !important;
         border: none !important;
-        transition: 0.3s !important;
+        box-shadow: 0 4px 10px rgba(239, 79, 95, 0.2) !important;
+        width: 100%;
+        transition: all 0.2s !important;
     }
-    .stButton > button:hover { opacity: 0.9; transform: scale(1.02); }
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 15px rgba(239, 79, 95, 0.3) !important;
+    }
+
+    /* MOBILE RESPONSIVENESS */
+    @media (max-width: 768px) {
+        .pill-nav {
+            display: none; /* Hide desktop nav on mobile */
+        }
+        .hero-section {
+            height: 260px;
+        }
+        .search-outer {
+            margin-top: -40px;
+        }
+        .search-pill-bg {
+            padding: 15px;
+        }
+        .brand-logo {
+            font-size: 20px;
+        }
+        [data-testid="column"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+            min-width: 100% !important;
+            margin-bottom: 10px;
+        }
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -239,13 +240,15 @@ with cols[2]:
             if st.button("Log in", key="login_btn"):
                 st.session_state.show_auth = 'login'
         with auth_cols[1]:
+            st.markdown('<div style="margin-top:-4px">', unsafe_allow_html=True)
             if st.button("Sign up", key="signup_btn"):
                 st.session_state.show_auth = 'signup'
+            st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.markdown(f"""
-        <div class="header-right">
-            <span style="color: white; font-weight: 500;">Hi, {st.session_state.user_name}</span>
-            <div class="profile-trigger"></div>
+        <div class="header-right" style="display:flex; align-items:center; gap:10px; justify-content:flex-end;">
+            <span style="color: var(--text-main); font-weight: 600; font-size:14px;">Hi, {st.session_state.user_name}</span>
+            <div style="width:32px; height:32px; border-radius:50%; background:#eee; border:1px solid #ddd;"></div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Logout", key="logout_btn"):
@@ -255,8 +258,8 @@ with cols[2]:
 # 2. AUTH MODAL (Inline)
 if st.session_state.show_auth:
     with st.container():
-        st.markdown(f'<div class="auth-overlay">', unsafe_allow_html=True)
-        st.markdown(f'<h2 style="color:white; margin-bottom:20px;">{"Log in" if st.session_state.show_auth == "login" else "Create Account"}</h2>', unsafe_allow_html=True)
+        st.markdown(f'<div class="auth-overlay" style="background:white; border:1px solid #ddd; padding:40px; border-radius:20px; box-shadow:var(--shadow-lg); max-width:400px; margin:20px auto;">', unsafe_allow_html=True)
+        st.markdown(f'<h2 style="color:var(--text-main); margin-bottom:20px; font-weight:700;">{"Log in" if st.session_state.show_auth == "login" else "Create Account"}</h2>', unsafe_allow_html=True)
         
         email = st.text_input("Email", placeholder="Enter your email")
         password = st.text_input("Password", type="password", placeholder="Enter password")
@@ -354,21 +357,28 @@ if df is not None:
     st.markdown('</div>', unsafe_allow_html=True)
 
     # 5. INTERACTIVE CATEGORY TILES
-    st.markdown('<div style="padding: 20px 10%; display: flex; gap: 20px;">', unsafe_allow_html=True)
+    st.markdown('<div style="padding: 20px 10%; margin-bottom: 40px;">', unsafe_allow_html=True)
+    st.markdown('<h3 style="text-align:center; margin-bottom:20px; color:var(--text-main); font-weight:700;">Explore categories</h3>', unsafe_allow_html=True)
     cat_cols = st.columns(3)
     
     with cat_cols[0]:
+        st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
         if st.button("🍱 Full Meals"):
             st.session_state.selected_category = "Meals"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
     with cat_cols[1]:
+        st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
         if st.button("☕ Cafes"):
             st.session_state.selected_category = "Cafes"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
     with cat_cols[2]:
+        st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
         if st.button("🥂 Nightlife"):
             st.session_state.selected_category = "Nightlife"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     if submit:
@@ -387,8 +397,13 @@ if df is not None:
                 user_query = f"I'm looking for {cuisine} food in {location} with a {budget_label} budget."
                 ai_expert_content = st.session_state.ai_engine.get_recommendations(user_query, ranked_results)
                 
-                st.markdown(f'<div style="padding: 0 10% 80px 10%;"><h2 style="color:white; margin-bottom:10px;">Top AI Picks</h2>', unsafe_allow_html=True)
-                st.info(f"🤖 **AI Expert Summary:** {ai_expert_content[:300]}...")
+                st.markdown(f'<div style="padding: 0 10% 80px 10%;"><h2 style="color:var(--text-main); margin-bottom:10px; font-weight:800; letter-spacing:-1px;">Top AI Picks</h2>', unsafe_allow_html=True)
+                st.markdown(f"""
+                <div style="background: #E8F3FF; padding: 20px; border-radius: 16px; border-left: 5px solid #2D7FF9; margin-bottom: 30px;">
+                    <span style="font-size: 20px;">🤖</span> <span style="color: #1a1a1a; font-weight: 600;">AI Summary:</span> 
+                    <span style="color: #333; line-height: 1.5;">{ai_expert_content[:350]}...</span>
+                </div>
+                """, unsafe_allow_html=True)
                 
                 res_cols = st.columns(3)
                 food_images = [
@@ -405,17 +420,17 @@ if df is not None:
                         indiv_insight = st.session_state.ai_engine.get_recommendations(restaurant_context, pd.DataFrame([row]))
                         
                         st.markdown(f"""
-                        <div class="res-card" style="height: 100%;">
-                            <img src="{img_url}" style="width: 100%; height: 200px; object-fit: cover;">
+                        <div class="res-card">
+                            <img src="{img_url}" style="width: 100%; height: 180px; object-fit: cover;">
                             <div style="padding: 20px;">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                                    <div style="color: white; font-size: 18px; font-weight: 700;">{row['restaurant name']}</div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <div style="color: var(--text-main); font-size: 18px; font-weight: 700;">{row['restaurant name']}</div>
                                     <span class="rating-badge">{row['rate (out of 5)']} ★</span>
                                 </div>
-                                <div style="color: #aaa; font-size: 13px; margin-bottom: 8px;">{row['cuisines type']}</div>
-                                <div style="color: #666; font-size: 12px; margin-bottom: 15px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
-                                <div style="background: rgba(255, 87, 34, 0.05); padding: 12px; border-radius: 12px; border-left: 3px solid #ff5722; color: #ddd; font-size: 13px; line-height: 1.4;">
-                                    <strong>AI Verdict:</strong> {indiv_insight[:150]}...
+                                <div style="color: var(--text-sub); font-size: 13px; margin-bottom: 4px;">{row['cuisines type']}</div>
+                                <div style="color: #888; font-size: 12px; margin-bottom: 15px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
+                                <div style="background: #F8F8F8; padding: 12px; border-radius: 12px; border: 1px solid #eee; color: #444; font-size: 12px; line-height: 1.5;">
+                                    <strong>AI Verdict:</strong> {indiv_insight[:140]}...
                                 </div>
                             </div>
                         </div>

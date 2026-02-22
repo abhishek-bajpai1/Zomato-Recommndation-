@@ -7,7 +7,16 @@ load_dotenv()
 
 class RecommendationEngine:
     def __init__(self):
-        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            self.client = None
+            print("WARNING: GROQ_API_KEY not found. LLM features will be disabled.")
+        else:
+            try:
+                self.client = Groq(api_key=api_key)
+            except Exception as e:
+                self.client = None
+                print(f"WARNING: Failed to initialize Groq client: {e}")
 
     def get_recommendations(self, user_preferences, filtered_restaurants):
         """
@@ -38,6 +47,9 @@ class RecommendationEngine:
         For each restaurant, explain why it matches the user's preferences. 
         Format the response clearly with restaurant names and descriptions.
         """
+
+        if not self.client:
+            return "AI Insight is currently unavailable (Missing API Key). However, you can see the top matches below!"
 
         try:
             chat_completion = self.client.chat.completions.create(

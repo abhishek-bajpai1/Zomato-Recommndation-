@@ -209,8 +209,15 @@ st.markdown("""
 # 1. NAVBAR
 cols = st.columns([1, 4, 1.5])
 
+# Initialize Recommendation Engine
+if 'ai_engine' not in st.session_state:
+    st.session_state.ai_engine = RecommendationEngine()
+
 with cols[0]:
-    st.markdown('<div class="brand-logo">ZOMATO<span>AI</span></div>', unsafe_allow_html=True)
+    if st.button("ZOMATO AI", key="logo_home"):
+        # Reset state but keep login
+        st.session_state.pop('selected_category', None)
+        st.rerun()
 
 with cols[1]:
     st.markdown("""
@@ -281,7 +288,7 @@ if st.session_state.show_auth:
 st.markdown("""
 <div class="hero-section">
     <h1 class="hero-tagline">Discover the best food & drinks in Bangalore</h1>
-    <p style="color: #ccc; font-size: 18px;">Powered by Zomato AI Insights</p>
+    <p style="color: #ccc; font-size: 18px;">Powered by Zomato AI – Expert Recommendations in Seconds</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -297,60 +304,91 @@ def load_data():
 
 df = load_data()
 
+# Category Selection Logic
+if 'selected_category' not in st.session_state:
+    st.session_state.selected_category = None
+
 st.markdown('<div class="search-outer"><div class="search-pill-bg">', unsafe_allow_html=True)
 if df is not None:
     s_cols = st.columns([0.2, 1.5, 1, 1, 0.8])
     with s_cols[0]:
         st.markdown('<div style="color:#ff5722; font-size:24px; padding-top:5px;">🔍</div>', unsafe_allow_html=True)
+    
     with s_cols[1]:
+        # Intelligent Location Discovery
         locations = sorted(df['area'].unique().tolist())
-        location = st.selectbox("Area", ["Bangalore Central"] + locations, label_visibility="collapsed")
+        location = st.selectbox("Area", ["Any Location"] + locations, index=0, label_visibility="collapsed")
+    
     with s_cols[2]:
-        cuisines_list = ['All Cuisines', 'North Indian', 'Chinese', 'South Indian', 'Fast Food', 'Biryani', 'Cafe', 'Pizza']
-        cuisine = st.selectbox("Cuisine", cuisines_list, label_visibility="collapsed")
+        # Dynamic Cuisine Discovery
+        all_cuisines = set()
+        df['cuisines type'].dropna().apply(lambda x: [all_cuisines.add(c.strip()) for c in x.split(',')])
+        sorted_cuisines = sorted(list(all_cuisines))
+        
+        # Override if category selected
+        default_cuisine_idx = 0
+        if st.session_state.selected_category == "Cafes":
+            if "Cafe" in sorted_cuisines: default_cuisine_idx = sorted_cuisines.index("Cafe") + 1
+        
+        cuisine = st.selectbox("Cuisine", ["All Cuisines"] + sorted_cuisines, index=default_cuisine_idx, label_visibility="collapsed")
+    
     with s_cols[3]:
         budget_map = {"Any Budget": None, "Under ₹500": "budget", "₹500-₹1500": "mid", "Above ₹1500": "premium"}
         budget_label = st.selectbox("Budget", list(budget_map.keys()), label_visibility="collapsed")
         price_val = budget_map[budget_label]
+    
     with s_cols[4]:
         rating_val = st.selectbox("Rating", ["3.0+", "3.5+", "4.0+", "4.5+"], index=2, label_visibility="collapsed")
         rating_num = float(rating_val.replace("+", ""))
+    
     st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown('<br>', unsafe_allow_html=True)
-    submit = st.button("Get AI Recommendations ✨", use_container_width=True)
+    btn_cols = st.columns([4, 1])
+    with btn_cols[0]:
+        submit = st.button("Generate Expert Recommendations ✨", use_container_width=True)
+    with btn_cols[1]:
+        if st.button("Reset 🔄", use_container_width=True):
+            st.session_state.selected_category = None
+            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # 4. CATEGORY TILES
-    st.markdown("""
-    <div style="padding: 20px 10%; display: flex; gap: 20px;">
-        <div style="flex:1; background:#1a1a1a; padding:35px; border-radius:24px; border:1px solid #222; text-align:center;">
-            <div style="font-size:45px; margin-bottom:15px;">🍱</div>
-            <div style="color:white; font-size:20px; font-weight:700;">Full Meals</div>
-        </div>
-        <div style="flex:1; background:#1a1a1a; padding:35px; border-radius:24px; border:1px solid #222; text-align:center;">
-            <div style="font-size:45px; margin-bottom:15px;">☕</div>
-            <div style="color:white; font-size:20px; font-weight:700;">Cafes</div>
-        </div>
-        <div style="flex:1; background:#1a1a1a; padding:35px; border-radius:24px; border:1px solid #222; text-align:center;">
-            <div style="font-size:45px; margin-bottom:15px;">🥂</div>
-            <div style="color:white; font-size:20px; font-weight:700;">Nightlife</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # 5. INTERACTIVE CATEGORY TILES
+    st.markdown('<div style="padding: 20px 10%; display: flex; gap: 20px;">', unsafe_allow_html=True)
+    cat_cols = st.columns(3)
+    
+    with cat_cols[0]:
+        if st.button("🍱 Full Meals"):
+            st.session_state.selected_category = "Meals"
+            st.rerun()
+    with cat_cols[1]:
+        if st.button("☕ Cafes"):
+            st.session_state.selected_category = "Cafes"
+            st.rerun()
+    with cat_cols[2]:
+        if st.button("🥂 Nightlife"):
+            st.session_state.selected_category = "Nightlife"
+            st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if submit:
-        with st.spinner("Analyzing recommendations..."):
+        with st.spinner("Zomato AI is analyzing the best matches for you..."):
             c_filter = None if cuisine == "All Cuisines" else cuisine
-            # Use fixed location if default selected
-            loc_query = "Basavanagudi" if location == "Bangalore Central" else location
+            loc_query = None if location == "Any Location" else location
+            
             filtered_df = filter_restaurants(df, price=price_val, place=loc_query, rating=rating_num, cuisine=c_filter)
             
             if filtered_df.empty:
-                st.warning("No matches found. Try relaxing your filters!")
+                st.error("No matches found for this combination. Try expanding your search area or budget!")
             else:
                 ranked_results = rank_restaurants(filtered_df).head(3)
-                st.markdown(f'<div style="padding: 0 10% 80px 10%;"><h2 style="color:white; margin-bottom:30px;">Top Picks for You</h2>', unsafe_allow_html=True)
+                
+                # GET REAL AI INSIGHTS
+                user_query = f"I'm looking for {cuisine} food in {location} with a {budget_label} budget."
+                ai_expert_content = st.session_state.ai_engine.get_recommendations(user_query, ranked_results)
+                
+                st.markdown(f'<div style="padding: 0 10% 80px 10%;"><h2 style="color:white; margin-bottom:10px;">Top AI Picks</h2>', unsafe_allow_html=True)
+                st.info(f"🤖 **AI Expert Summary:** {ai_expert_content[:300]}...")
                 
                 res_cols = st.columns(3)
                 food_images = [
@@ -362,18 +400,22 @@ if df is not None:
                 for idx, (_, row) in enumerate(ranked_results.iterrows()):
                     img_url = food_images[idx % len(food_images)]
                     with res_cols[idx]:
+                        # Specific AI Insight for this restaurant
+                        restaurant_context = f"Why is {row['restaurant name']} a good choice?"
+                        indiv_insight = st.session_state.ai_engine.get_recommendations(restaurant_context, pd.DataFrame([row]))
+                        
                         st.markdown(f"""
-                        <div class="res-card">
-                            <img src="{img_url}" style="width: 100%; height: 220px; object-fit: cover;">
-                            <div style="padding: 24px;">
+                        <div class="res-card" style="height: 100%;">
+                            <img src="{img_url}" style="width: 100%; height: 200px; object-fit: cover;">
+                            <div style="padding: 20px;">
                                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                                    <div style="color: white; font-size: 20px; font-weight: 700;">{row['restaurant name']}</div>
+                                    <div style="color: white; font-size: 18px; font-weight: 700;">{row['restaurant name']}</div>
                                     <span class="rating-badge">{row['rate (out of 5)']} ★</span>
                                 </div>
-                                <div style="color: #aaa; font-size: 14px; margin-bottom: 8px;">{row['cuisines type']}</div>
-                                <div style="color: #666; font-size: 13px; margin-bottom: 20px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
-                                <div style="background: rgba(255, 87, 34, 0.08); padding: 15px; border-radius: 12px; border-left: 4px solid #ff5722; color: #eee; font-size: 14px;">
-                                    <strong>AI Insight:</strong> A premium match based on your {cuisine} preference in {location}.
+                                <div style="color: #aaa; font-size: 13px; margin-bottom: 8px;">{row['cuisines type']}</div>
+                                <div style="color: #666; font-size: 12px; margin-bottom: 15px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
+                                <div style="background: rgba(255, 87, 34, 0.05); padding: 12px; border-radius: 12px; border-left: 3px solid #ff5722; color: #ddd; font-size: 13px; line-height: 1.4;">
+                                    <strong>AI Verdict:</strong> {indiv_insight[:150]}...
                                 </div>
                             </div>
                         </div>

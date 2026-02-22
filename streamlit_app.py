@@ -8,217 +8,209 @@ from phase3.llm_engine import RecommendationEngine
 # Set Page Config
 st.set_page_config(page_title="Zomato AI", page_icon="🍴", layout="wide", initial_sidebar_state="collapsed")
 
+# 1. THEME MANAGEMENT
+with st.sidebar:
+    st.title("Settings")
+    theme_choice = st.radio("UI Theme", ["Premium Dark", "Sleek Light"], index=0)
+    st.divider()
+    st.markdown("### About Zomato AI")
+    st.info("Powering your cravings with real-time AI expert insights.")
+
+is_dark = theme_choice == "Premium Dark"
+
 # Initialize Session State
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 if 'user_name' not in st.session_state:
     st.session_state.user_name = ""
 if 'show_auth' not in st.session_state:
-    st.session_state.show_auth = None # 'login' or 'signup'
+    st.session_state.show_auth = None
 
-# Custom CSS for Professional Light UI & Mobile Responsiveness
-st.markdown("""
+# Custom CSS with Dynamic Variables
+theme_vars = {
+    "bg_color": "#0d0d0d" if is_dark else "#ffffff",
+    "surface_color": "#1a1a1a" if is_dark else "#f8f8f8",
+    "text_main": "#ffffff" if is_dark else "#1c1c1c",
+    "text_sub": "#aaaaaa" if is_dark else "#696969",
+    "border_color": "#333333" if is_dark else "#e8e8e8",
+    "card_bg": "#1a1a1a" if is_dark else "#ffffff",
+    "shadow": "0 10px 40px rgba(0,0,0,0.5)" if is_dark else "0 4px 20px rgba(0,0,0,0.08)",
+    "nav_bg": "rgba(255,255,255,0.05)" if is_dark else "rgba(255,255,255,0.95)",
+    "nav_text": "#ffffff" if is_dark else "#1c1c1c"
+}
+
+st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
     
-    :root {
+    :root {{
         --zomato-red: #EF4F5F;
         --accent-orange: #ff5722;
-        --bg-color: #ffffff;
-        --surface-color: #f8f8f8;
-        --text-main: #1c1c1c;
-        --text-sub: #696969;
-        --border-color: #e8e8e8;
-        --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
-        --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
-        --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
-    }
+        --bg-color: {theme_vars['bg_color']};
+        --surface-color: {theme_vars['surface_color']};
+        --text-main: {theme_vars['text_main']};
+        --text-sub: {theme_vars['text_sub']};
+        --border-color: {theme_vars['border_color']};
+        --card-bg: {theme_vars['card_bg']};
+        --shadow: {theme_vars['shadow']};
+    }}
 
-    /* Global Body Styling */
-    .stApp {
-        font-family: 'Inter', sans-serif !important;
+    /* Global styling */
+    .stApp {{
+        font-family: 'Outfit', sans-serif !important;
         background-color: var(--bg-color);
         color: var(--text-main);
-    }
+    }}
 
-    /* Hide Streamlit Header and Footer */
-    header, footer {visibility: hidden;}
-    #MainMenu {visibility: hidden;}
+    /* Layout cleanup */
+    header, footer {{visibility: hidden;}}
+    #MainMenu {{visibility: hidden;}}
+    .block-container {{padding-top: 0rem !important; padding-bottom: 5rem !important;}}
 
-    /* Navigation Styling */
-    .brand-logo {
+    /* Navbar Reconstruction */
+    .brand-logo {{
         color: var(--text-main);
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 800;
         letter-spacing: -0.5px;
         display: flex;
         align-items: center;
-        gap: 4px;
-        cursor: pointer;
-    }
+        gap: 6px;
+    }}
+    .brand-logo span {{ color: var(--zomato-red); }}
 
-    .brand-logo span {
-        color: var(--zomato-red);
-    }
-
-    .pill-nav {
-        background-color: white;
+    .pill-nav {{
+        background: {theme_vars['nav_bg']};
+        backdrop-filter: blur(10px);
         border-radius: 100px;
-        padding: 6px 24px;
+        padding: 8px 30px;
         display: flex;
-        gap: 20px;
+        gap: 25px;
         align-items: center;
         border: 1px solid var(--border-color);
-        box-shadow: var(--shadow-sm);
-    }
+        box-shadow: var(--shadow);
+    }}
 
-    .nav-item {
-        color: var(--text-sub);
-        font-weight: 500;
+    .nav-item {{
+        color: {theme_vars['nav_text']};
+        font-weight: 600;
         font-size: 14px;
         text-decoration: none;
         cursor: pointer;
-        transition: all 0.2s;
-    }
+        opacity: 0.8;
+    }}
+    .nav-item:hover {{ opacity: 1; color: var(--zomato-red); }}
 
-    .nav-item:hover {
-        color: var(--zomato-red);
-    }
-
-    /* Hero Section */
-    .hero-section {
-        height: 320px;
+    /* Hero Refinement */
+    .hero-section {{
+        height: 380px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         color: white;
         text-align: center;
-        background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80') center/cover;
+        background: linear-gradient(rgba(0,0,0,{'0.6' if is_dark else '0.3'}), rgba(0,0,0,{'0.8' if is_dark else '0.5'})), 
+                    url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80') center/cover;
         margin-bottom: 20px;
-    }
+    }}
 
-    .hero-tagline {
-        font-size: clamp(28px, 5vw, 48px);
+    .hero-tagline {{
+        font-size: clamp(32px, 5vw, 56px);
         font-weight: 800;
+        letter-spacing: -1.5px;
         margin-bottom: 10px;
-        padding: 0 20px;
-        letter-spacing: -1px;
-    }
+    }}
 
-    /* Search Container */
-    .search-outer {
+    /* Search Container Styling */
+    .search-outer {{
         max-width: 1000px;
-        margin: -60px auto 40px auto;
+        margin: -70px auto 40px auto;
         padding: 0 20px;
         position: relative;
         z-index: 100;
-    }
+    }}
 
-    .search-pill-bg {
-        background: white;
-        padding: 12px 24px;
-        border-radius: 20px;
+    .search-pill-bg {{
+        background: var(--card_bg);
+        padding: 20px 30px;
+        border-radius: 24px;
         border: 1px solid var(--border-color);
-        box-shadow: var(--shadow-lg);
-    }
+        box-shadow: var(--shadow);
+    }}
 
-    /* Result Cards */
-    .res-card {
-        background: white;
-        border-radius: 16px;
+    /* Result Card Reconstruction */
+    .res-card {{
+        background: var(--card-bg);
+        border-radius: 20px;
         overflow: hidden;
         margin-bottom: 25px;
         border: 1px solid var(--border-color);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: var(--shadow-sm);
-    }
-    .res-card:hover { 
-        transform: translateY(-8px); 
-        box-shadow: var(--shadow-md);
-    }
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }}
+    .res-card:hover {{ 
+        transform: translateY(-8px) scale(1.02); 
+        box-shadow: var(--shadow);
+    }}
 
-    .rating-badge {
-        background: #24963F; /* Zomato Green for ratings */
+    .rating-badge {{
+        background: #24963F;
         color: white;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 800;
         font-size: 14px;
-    }
+    }}
 
-    /* Streamlit UI Overrides */
-    .stSelectbox div[data-baseweb="select"] {
-        border: 1px solid transparent !important;
-        background-color: #f3f3f3 !important;
+    /* Auth Overlay as Elegant Card */
+    .auth-card {{
+        background: var(--card-bg);
+        padding: 40px;
+        border-radius: 24px;
+        border: 1px solid var(--border-color);
+        max-width: 450px;
+        margin: 50px auto;
+        box-shadow: var(--shadow);
+    }}
+
+    /* Streamlit Overrides */
+    .stSelectbox div[data-baseweb="select"] {{
+        background-color: var(--surface-color) !important;
+        border: 1px solid var(--border-color) !important;
         border-radius: 12px !important;
-        transition: 0.2s;
-    }
-    .stSelectbox div[data-baseweb="select"]:hover {
-        border-color: #ddd !important;
-    }
+        color: var(--text-main) !important;
+    }}
     
-    div[data-testid="stExpander"] {
-        border: none !important;
-        background: var(--surface-color) !important;
-        border-radius: 16px !important;
-    }
-
-    .stButton > button {
-        background-color: var(--zomato-red) !important;
+    .stButton > button {{
+        background: var(--zomato-red) !important;
         color: white !important;
         border-radius: 12px !important;
-        padding: 10px 24px !important;
-        font-weight: 600 !important;
+        padding: 12px 24px !important;
+        font-weight: 700 !important;
         border: none !important;
-        box-shadow: 0 4px 10px rgba(239, 79, 95, 0.2) !important;
         width: 100%;
-        transition: all 0.2s !important;
-    }
-    .stButton > button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 15px rgba(239, 79, 95, 0.3) !important;
-    }
+        transition: 0.3s !important;
+    }}
+    .stButton > button:hover {{ transform: scale(1.02); opacity: 0.9; }}
 
-    /* MOBILE RESPONSIVENESS */
-    @media (max-width: 768px) {
-        .pill-nav {
-            display: none; /* Hide desktop nav on mobile */
-        }
-        .hero-section {
-            height: 260px;
-        }
-        .search-outer {
-            margin-top: -40px;
-        }
-        .search-pill-bg {
-            padding: 15px;
-        }
-        .brand-logo {
-            font-size: 20px;
-        }
-        [data-testid="column"] {
-            width: 100% !important;
-            flex: 1 1 100% !important;
-            min-width: 100% !important;
-            margin-bottom: 10px;
-        }
-    }
+    /* Mobile Adaptations */
+    @media (max-width: 768px) {{
+        .pill-nav {{ display: none; }}
+        .search-outer {{ margin-top: -40px; }}
+        .hero-tagline {{ font-size: 34px !important; }}
+    }}
     </style>
     """, unsafe_allow_html=True)
 
-# 1. NAVBAR
-cols = st.columns([1, 4, 1.5])
+# 1. NAVBAR Reconstruction
+cols = st.columns([1, 4, 1.5], gap="large")
 
 # Initialize Recommendation Engine
 if 'ai_engine' not in st.session_state:
     st.session_state.ai_engine = RecommendationEngine()
 
 with cols[0]:
-    if st.button("ZOMATO AI", key="logo_home"):
-        # Reset state but keep login
-        st.session_state.pop('selected_category', None)
-        st.rerun()
+    st.markdown('<div class="brand-logo">ZOMATO<span>AI</span></div>', unsafe_allow_html=True)
 
 with cols[1]:
     st.markdown("""
@@ -228,71 +220,69 @@ with cols[1]:
             <span class="nav-item">Dining</span>
             <span class="nav-item">Nightlife</span>
             <span class="nav-item">Trending</span>
-            <span class="nav-item">Contact</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 with cols[2]:
     if not st.session_state.logged_in:
-        auth_cols = st.columns(2)
-        with auth_cols[0]:
+        auth_row = st.columns(2)
+        with auth_row[0]:
             if st.button("Log in", key="login_btn"):
                 st.session_state.show_auth = 'login'
-        with auth_cols[1]:
-            st.markdown('<div style="margin-top:-4px">', unsafe_allow_html=True)
+        with auth_row[1]:
             if st.button("Sign up", key="signup_btn"):
                 st.session_state.show_auth = 'signup'
-            st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.markdown(f"""
-        <div class="header-right" style="display:flex; align-items:center; gap:10px; justify-content:flex-end;">
-            <span style="color: var(--text-main); font-weight: 600; font-size:14px;">Hi, {st.session_state.user_name}</span>
-            <div style="width:32px; height:32px; border-radius:50%; background:#eee; border:1px solid #ddd;"></div>
+        <div style="display:flex; align-items:center; gap:12px; justify-content:flex-end;">
+            <span style="color:var(--text-main); font-weight:600;">{st.session_state.user_name}</span>
+            <div style="width:36px; height:36px; border-radius:50%; background:var(--zomato-red);"></div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Logout", key="logout_btn"):
             st.session_state.logged_in = False
             st.rerun()
 
-# 2. AUTH MODAL (Inline)
+# 2. AUTH MODAL (Centered Card)
 if st.session_state.show_auth:
-    with st.container():
-        st.markdown(f'<div class="auth-overlay" style="background:white; border:1px solid #ddd; padding:40px; border-radius:20px; box-shadow:var(--shadow-lg); max-width:400px; margin:20px auto;">', unsafe_allow_html=True)
-        st.markdown(f'<h2 style="color:var(--text-main); margin-bottom:20px; font-weight:700;">{"Log in" if st.session_state.show_auth == "login" else "Create Account"}</h2>', unsafe_allow_html=True)
+    _, center_col, _ = st.columns([1, 2, 1])
+    with center_col:
+        st.markdown('<div class="auth-card">', unsafe_allow_html=True)
+        st.markdown(f'<h2 style="color:var(--text-main); margin-bottom:30px; text-align:center; font-weight:800;">{"Welcome Back" if st.session_state.show_auth == "login" else "Create AI Account"}</h2>', unsafe_allow_html=True)
         
-        email = st.text_input("Email", placeholder="Enter your email")
-        password = st.text_input("Password", type="password", placeholder="Enter password")
+        email = st.text_input("Work Email", placeholder="email@example.com")
+        password = st.text_input("Access Key", type="password", placeholder="••••••••")
         
         if st.session_state.show_auth == 'login':
-            if st.button("Confirm Login"):
+            if st.button("Authenticate Now"):
                 if email and password:
                     st.session_state.logged_in = True
                     st.session_state.user_name = email.split('@')[0].capitalize()
                     st.session_state.show_auth = None
-                    st.success("Welcome back!")
+                    st.success("Access Granted!")
                     st.rerun()
         else:
-            name = st.text_input("Full Name", placeholder="Your Name")
-            if st.button("Create Account"):
+            name = st.text_input("Full Identity", placeholder="Your Name")
+            if st.button("Initialize Account"):
                 if email and password and name:
                     st.session_state.logged_in = True
                     st.session_state.user_name = name
                     st.session_state.show_auth = None
-                    st.success("Account created!")
+                    st.success("Profile Activated!")
                     st.rerun()
         
-        if st.button("Close"):
+        if st.button("Cancel", key="close_auth"):
             st.session_state.show_auth = None
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-# 3. HERO
-st.markdown("""
-<div class="hero-section">
-    <h1 class="hero-tagline">Discover the best food & drinks in Bangalore</h1>
-    <p style="color: #ccc; font-size: 18px;">Powered by Zomato AI – Expert Recommendations in Seconds</p>
-</div>
+# 3. HERO SECTION
+st.markdown(f"""
+    <div class="hero-section">
+        <h1 class="hero-tagline">Find the best food in Bangalore</h1>
+        <p style="font-size: 18px; opacity: 0.9; color: white;">Powered by Zomato AI – Expert Recommendations in Seconds</p>
+    </div>
 """, unsafe_allow_html=True)
 
 # 4. SEARCH PILL
@@ -397,15 +387,22 @@ if df is not None:
                 user_query = f"I'm looking for {cuisine} food in {location} with a {budget_label} budget."
                 ai_expert_content = st.session_state.ai_engine.get_recommendations(user_query, ranked_results)
                 
-                st.markdown(f'<div style="padding: 0 10% 80px 10%;"><h2 style="color:var(--text-main); margin-bottom:10px; font-weight:800; letter-spacing:-1px;">Top AI Picks</h2>', unsafe_allow_html=True)
-                st.markdown(f"""
-                <div style="background: #E8F3FF; padding: 20px; border-radius: 16px; border-left: 5px solid #2D7FF9; margin-bottom: 30px;">
-                    <span style="font-size: 20px;">🤖</span> <span style="color: #1a1a1a; font-weight: 600;">AI Summary:</span> 
-                    <span style="color: #333; line-height: 1.5;">{ai_expert_content[:350]}...</span>
-                </div>
-                """, unsafe_allow_html=True)
+                # AI INSIGHT PANEL
+                st.markdown(f'<div style="padding: 0 10% 80px 10%;"><h2 style="color:var(--text-main); margin-bottom:20px; font-weight:800; letter-spacing:-1px;">Expert AI Match Score</h2>', unsafe_allow_html=True)
                 
-                res_cols = st.columns(3)
+                _, ai_box_col, _ = st.columns([0.1, 5, 0.1])
+                with ai_box_col:
+                    st.markdown(f"""
+                    <div style="background: {'rgba(255, 87, 34, 0.1)' if is_dark else '#f0f7ff'}; 
+                                padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); 
+                                border-left: 8px solid var(--zomato-red); margin-bottom: 40px;">
+                        <span style="font-size: 24px; margin-right: 15px;">🤖</span> 
+                        <span style="color: var(--text-main); font-weight: 700; font-size: 18px;">Personalized Concierge Insight:</span>
+                        <p style="color: var(--text-main); line-height: 1.6; margin-top: 15px; font-size: 16px;">{ai_expert_content[:450]}...</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                res_cols = st.columns(3, gap="medium")
                 food_images = [
                     "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop",
                     "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop",
@@ -415,22 +412,18 @@ if df is not None:
                 for idx, (_, row) in enumerate(ranked_results.iterrows()):
                     img_url = food_images[idx % len(food_images)]
                     with res_cols[idx]:
-                        # Specific AI Insight for this restaurant
-                        restaurant_context = f"Why is {row['restaurant name']} a good choice?"
-                        indiv_insight = st.session_state.ai_engine.get_recommendations(restaurant_context, pd.DataFrame([row]))
-                        
                         st.markdown(f"""
                         <div class="res-card">
-                            <img src="{img_url}" style="width: 100%; height: 180px; object-fit: cover;">
-                            <div style="padding: 20px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <div style="color: var(--text-main); font-size: 18px; font-weight: 700;">{row['restaurant name']}</div>
+                            <img src="{img_url}" style="width: 100%; height: 200px; object-fit: cover;">
+                            <div style="padding: 24px;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                    <div style="color: var(--text-main); font-size: 20px; font-weight: 700;">{row['restaurant name']}</div>
                                     <span class="rating-badge">{row['rate (out of 5)']} ★</span>
                                 </div>
-                                <div style="color: var(--text-sub); font-size: 13px; margin-bottom: 4px;">{row['cuisines type']}</div>
-                                <div style="color: #888; font-size: 12px; margin-bottom: 15px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
-                                <div style="background: #F8F8F8; padding: 12px; border-radius: 12px; border: 1px solid #eee; color: #444; font-size: 12px; line-height: 1.5;">
-                                    <strong>AI Verdict:</strong> {indiv_insight[:140]}...
+                                <div style="color: var(--text-sub); font-size: 14px; margin-bottom: 8px;">{row['cuisines type']}</div>
+                                <div style="color: var(--text-sub); font-size: 13px; margin-bottom: 20px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
+                                <div style="background: var(--surface-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); color: var(--text-main); font-size: 14px;">
+                                    <strong>AI Insight:</strong> A premium match based on your preferences.
                                 </div>
                             </div>
                         </div>

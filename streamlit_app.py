@@ -41,7 +41,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # App Header
-st.image("https://b.zmtcdn.com/web_assets/8313a97515fcb0447d2e77c27a44e9081561405107.png", width=200)
+st.image("https://upload.wikimedia.org/wikipedia/commons/b/bd/Zomato_Logo.png", width=150)
 st.title("AI Recommendation Engine")
 st.markdown("Find the best places to eat in Bangalore based on your mood and taste.")
 

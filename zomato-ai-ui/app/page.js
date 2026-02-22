@@ -44,24 +44,25 @@ export default function Home() {
       <Hero />
 
       {/* AI Recommender Form - Clean Pill Style */}
-      <section className="container" style={{ marginTop: '-50px', position: 'relative', zIndex: 10 }}>
+      <section className="container" style={{ marginTop: '0px', paddingBottom: '40px', position: 'relative', zIndex: 10 }}>
         <div style={{
           background: '#1a1a1a',
-          padding: '40px',
-          borderRadius: '24px',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-          border: '1px solid #222'
+          padding: '48px',
+          borderRadius: '28px',
+          boxShadow: '0 30px 60px rgba(0,0,0,0.6)',
+          border: '1px solid #333',
+          marginTop: '-100px'
         }}>
-          <div className="flex items-center gap-2 mb-8" style={{ color: '#ff5722' }}>
-            <Sparkles size={28} />
-            <h2 style={{ fontSize: '26px', fontWeight: 600, color: 'white' }}>AI Recommendation Engine</h2>
+          <div className="flex items-center gap-3 mb-10" style={{ color: '#ff5722' }}>
+            <Sparkles size={32} />
+            <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'white', letterSpacing: '-0.5px' }}>Let our AI find your perfect meal</h2>
           </div>
 
-          <div className="flex gap-6 mb-8" style={{ flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '250px' }}>
-              <label style={{ display: 'block', fontSize: '14px', color: '#aaa', marginBottom: '10px' }}>What are you craving?</label>
+          <div className="flex gap-8 mb-10" style={{ flexWrap: 'wrap' }}>
+            <div style={{ flex: '1.5', minWidth: '300px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#888', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>What are you craving?</label>
               <select
-                style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #333', outline: 'none', background: '#222', color: 'white' }}
+                style={{ width: '100%', padding: '16px', borderRadius: '14px', border: '1px solid #333', outline: 'none', background: '#222', color: 'white', fontSize: '16px', cursor: 'pointer' }}
                 value={preferences.cuisine}
                 onChange={(e) => setPreferences({ ...preferences, cuisine: e.target.value })}
               >
@@ -76,10 +77,10 @@ export default function Home() {
               </select>
             </div>
 
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <label style={{ display: 'block', fontSize: '14px', color: '#aaa', marginBottom: '10px' }}>Budget</label>
+            <div style={{ flex: '1', minWidth: '200px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#888', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Budget</label>
               <select
-                style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #333', outline: 'none', background: '#222', color: 'white' }}
+                style={{ width: '100%', padding: '16px', borderRadius: '14px', border: '1px solid #333', outline: 'none', background: '#222', color: 'white', fontSize: '16px', cursor: 'pointer' }}
                 value={preferences.price}
                 onChange={(e) => setPreferences({ ...preferences, price: e.target.value })}
               >
@@ -89,10 +90,10 @@ export default function Home() {
               </select>
             </div>
 
-            <div style={{ flex: 1, minWidth: '150px' }}>
-              <label style={{ display: 'block', fontSize: '14px', color: '#aaa', marginBottom: '10px' }}>Min Rating</label>
+            <div style={{ flex: '1', minWidth: '150px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#888', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Min Rating</label>
               <select
-                style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #333', outline: 'none', background: '#222', color: 'white' }}
+                style={{ width: '100%', padding: '16px', borderRadius: '14px', border: '1px solid #333', outline: 'none', background: '#222', color: 'white', fontSize: '16px', cursor: 'pointer' }}
                 value={preferences.rating}
                 onChange={(e) => setPreferences({ ...preferences, rating: e.target.value })}
               >
@@ -104,26 +105,29 @@ export default function Home() {
             </div>
           </div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             className="btn-primary"
             style={{
               width: '100%',
-              padding: '18px',
-              fontSize: '18px',
+              padding: '20px',
+              fontSize: '20px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '10px',
-              background: '#ff5722', // Match accent
-              borderRadius: '12px',
-              fontWeight: 700
+              gap: '12px',
+              background: 'linear-gradient(135deg, #ff5722 0%, #ff7043 100%)',
+              borderRadius: '16px',
+              fontWeight: 700,
+              boxShadow: '0 10px 20px rgba(255, 87, 34, 0.3)'
             }}
             onClick={handleGetRecommendations}
             disabled={loading}
           >
-            {loading ? <Loader2 className="animate-spin" /> : <Sparkles size={22} />}
-            {loading ? 'Finding Best Matches...' : 'Search for AI Recommendations'}
-          </button>
+            {loading ? <Loader2 className="animate-spin" /> : <Sparkles size={24} />}
+            {loading ? 'Consulting Zomato AI...' : 'Get Personalized Recommendations'}
+          </motion.button>
         </div>
       </section>
 

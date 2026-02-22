@@ -6,7 +6,7 @@ export default function Hero() {
     return (
         <section style={{
             position: 'relative',
-            height: '420px',
+            height: '520px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -6,9 +6,59 @@ from phase4.ranking_engine import rank_restaurants
 from phase3.llm_engine import RecommendationEngine
 from dotenv import load_dotenv
 import streamlit.components.v1 as components
+import json
 
 # Load environment variables FIRST
 load_dotenv(override=True)
+
+# 0. GLOBAL CONFIG & AUTH BRIDGE
+FIREBASE_CONFIG = {
+    "apiKey": "AIzaSyDRJ7W10gM2ZFUetfmAo6QF2Lgcdq0E1Vk",
+    "authDomain": "zomatoai-3cf37.firebaseapp.com",
+    "projectId": "zomatoai-3cf37",
+    "storageBucket": "zomatoai-3cf37.firebasestorage.app",
+    "messagingSenderId": "578592166445",
+    "appId": "1:578592166445:web:8c2e5c67a1c226bb7ddea4",
+}
+
+def get_auth_html(button_text):
+    config_json = json.dumps(FIREBASE_CONFIG)
+    return f"""
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script>
+        const firebaseConfig = {config_json};
+        if (!firebase.apps.length) {{
+            firebase.initializeApp(firebaseConfig);
+        }}
+        const provider = new firebase.auth.GoogleAuthProvider();
+
+        function signIn() {{
+            firebase.auth().signInWithPopup(provider)
+                .then((result) => {{
+                    const user = result.user;
+                    const name = encodeURIComponent(user.displayName || user.email.split('@')[0]);
+                    const baseUrl = window.parent.location.origin + window.parent.location.pathname;
+                    window.parent.location.href = baseUrl + `?auth_success=true&user_name=${{name}}`;
+                }}).catch((error) => {{
+                    console.error("Auth Error:", error);
+                    alert("Authentication failed: " + error.message);
+                }});
+        }}
+    </script>
+    <div style="padding: 0 5px;">
+        <button onclick="signIn()" style="
+            background: white; color: #757575; border: 1px solid #ddd;
+            border-radius: 12px; padding: 12px 24px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
+            gap: 12px; width: 100%; cursor: pointer; font-family: 'Outfit', sans-serif;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s;
+        ">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+            {button_text}
+        </button>
+    </div>
+    """
 
 # Set Page Config
 st.set_page_config(page_title="Zomato AI", page_icon="🍴", layout="wide", initial_sidebar_state="collapsed")
@@ -32,26 +82,14 @@ if 'show_auth' not in st.session_state:
     st.session_state.show_auth = None
 
 # REAL FIREBASE BRIDGE: Check for auth callback via query params
-if not st.session_state.logged_in:
-    # Use a more resilient way to check params
+if not st.session_state.get('logged_in', False):
     params = st.query_params
     if params.get("auth_success") == "true":
         st.session_state.logged_in = True
         st.session_state.user_name = params.get("user_name", "Explorer")
         st.session_state.show_auth = None
-        # Clear params and rerun
         st.query_params.clear()
         st.rerun()
-
-# Firebase Config (Shared with Next.js)
-FIREBASE_CONFIG = {
-    "apiKey": "AIzaSyDRJ7W10gM2ZFUetfmAo6QF2Lgcdq0E1Vk",
-    "authDomain": "zomatoai-3cf37.firebaseapp.com",
-    "projectId": "zomatoai-3cf37",
-    "storageBucket": "zomatoai-3cf37.firebasestorage.app",
-    "messagingSenderId": "578592166445",
-    "appId": "1:578592166445:web:8c2e5c67a1c226bb7ddea4",
-}
 
 # Custom CSS with Dynamic Variables
 theme_vars = {
@@ -303,43 +341,6 @@ if st.session_state.show_auth:
         email = st.text_input("Work Email", placeholder="email@example.com")
         password = st.text_input("Access Key", type="password", placeholder="••••••••")
         
-        # Define the Firebase Auth HTML Bridge once
-        auth_html = f"""
-        <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-        <script>
-            const firebaseConfig = {FIREBASE_CONFIG};
-            firebase.initializeApp(firebaseConfig);
-            const provider = new firebase.auth.GoogleAuthProvider();
-
-            function signIn() {{
-                firebase.auth().signInWithPopup(provider)
-                    .then((result) => {{
-                        const user = result.user;
-                        const name = encodeURIComponent(user.displayName || user.email.split('@')[0]);
-                        // Robust redirect using full parent URL
-                        const baseUrl = window.parent.location.origin + window.parent.location.pathname;
-                        window.parent.location.href = baseUrl + `?auth_success=true&user_name=${{name}}`;
-                    }}).catch((error) => {{
-                        console.error("Auth Error:", error);
-                        alert("Authentication failed: " + error.message);
-                    }});
-            }}
-        </script>
-        <div style="padding: 0 10px;">
-            <button onclick="signIn()" style="
-                background: white; color: #757575; border: 1px solid #ddd;
-                border-radius: 12px; padding: 12px 24px; font-weight: 600;
-                display: flex; align-items: center; justify-content: center;
-                gap: 12px; width: 100%; cursor: pointer; font-family: 'Outfit', sans-serif;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s;
-            ">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-                { "Sign in with Google (Live)" if st.session_state.show_auth == 'login' else "Sign up with Google (Live)" }
-            </button>
-        </div>
-        """
-        
         if st.session_state.show_auth == 'login':
             if st.button("Authenticate Now"):
                 if email and password:
@@ -352,7 +353,7 @@ if st.session_state.show_auth:
             st.markdown('<div style="text-align:center; margin-top:20px; color:var(--text-sub); font-size:14px;">— OR —</div>', unsafe_allow_html=True)
             
             # REAL FIREBASE GOOGLE AUTH BRIDGE
-            components.html(auth_html, height=75, key="google_auth_bridge")
+            components.html(get_auth_html("Sign in with Google (Live)"), height=75, key="google_auth_bridge")
 
         else:
             name = st.text_input("Full Identity", placeholder="Your Name")
@@ -367,7 +368,7 @@ if st.session_state.show_auth:
             st.markdown('<div style="text-align:center; margin-top:20px; color:var(--text-sub); font-size:14px;">— OR —</div>', unsafe_allow_html=True)
             
             # REAL FIREBASE GOOGLE SIGNUP BRIDGE
-            components.html(auth_html, height=75, key="google_signup_bridge")
+            components.html(get_auth_html("Sign up with Google (Live)"), height=75, key="google_signup_bridge")
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Nevermind, take me back", key="close_auth"):

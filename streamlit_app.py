@@ -5,6 +5,7 @@ from phase2.recommender_core import filter_restaurants
 from phase4.ranking_engine import rank_restaurants
 from phase3.llm_engine import RecommendationEngine
 from dotenv import load_dotenv
+import streamlit.components.v1 as components
 
 # Load environment variables FIRST
 load_dotenv(override=True)
@@ -299,6 +300,41 @@ if st.session_state.show_auth:
         email = st.text_input("Work Email", placeholder="email@example.com")
         password = st.text_input("Access Key", type="password", placeholder="••••••••")
         
+        # Define the Firebase Auth HTML Bridge once
+        auth_html = f"""
+        <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+        <script>
+            const firebaseConfig = {FIREBASE_CONFIG};
+            firebase.initializeApp(firebaseConfig);
+            const provider = new firebase.auth.GoogleAuthProvider();
+
+            function signIn() {{
+                firebase.auth().signInWithPopup(provider)
+                    .then((result) => {{
+                        const user = result.user;
+                        const name = encodeURIComponent(user.displayName);
+                        // Bridge back to Streamlit via parent URL update
+                        window.parent.location.search = `?auth_success=true&user_name=${{name}}`;
+                    }}).catch((error) => {{
+                        console.error(error);
+                    }});
+            }}
+        </script>
+        <div style="padding: 0 10px;">
+            <button onclick="signIn()" style="
+                background: white; color: #757575; border: 1px solid #ddd;
+                border-radius: 12px; padding: 12px 24px; font-weight: 600;
+                display: flex; align-items: center; justify-content: center;
+                gap: 12px; width: 100%; cursor: pointer; font-family: 'Outfit', sans-serif;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s;
+            ">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+                { "Sign in with Google (Live)" if st.session_state.show_auth == 'login' else "Sign up with Google (Live)" }
+            </button>
+        </div>
+        """
+        
         if st.session_state.show_auth == 'login':
             if st.button("Authenticate Now"):
                 if email and password:
@@ -311,40 +347,6 @@ if st.session_state.show_auth:
             st.markdown('<div style="text-align:center; margin-top:20px; color:var(--text-sub); font-size:14px;">— OR —</div>', unsafe_allow_html=True)
             
             # REAL FIREBASE GOOGLE AUTH BRIDGE
-            import streamlit.components.v1 as components
-            auth_html = f"""
-            <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-            <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-            <script>
-                const firebaseConfig = {FIREBASE_CONFIG};
-                firebase.initializeApp(firebaseConfig);
-                const provider = new firebase.auth.GoogleAuthProvider();
-
-                function signIn() {{
-                    firebase.auth().signInWithPopup(provider)
-                        .then((result) => {{
-                            const user = result.user;
-                            const name = encodeURIComponent(user.displayName);
-                            // Bridge back to Streamlit via parent URL update
-                            window.parent.location.search = `?auth_success=true&user_name=${{name}}`;
-                        }}).catch((error) => {{
-                            console.error(error);
-                        }});
-                }}
-            </script>
-            <div style="padding: 0 10px;">
-                <button onclick="signIn()" style="
-                    background: white; color: #757575; border: 1px solid #ddd;
-                    border-radius: 12px; padding: 12px 24px; font-weight: 600;
-                    display: flex; align-items: center; justify-content: center;
-                    gap: 12px; width: 100%; cursor: pointer; font-family: 'Outfit', sans-serif;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s;
-                ">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-                    Sign in with Google (Live)
-                </button>
-            </div>
-            """
             components.html(auth_html, height=70)
 
         else:
@@ -360,7 +362,7 @@ if st.session_state.show_auth:
             st.markdown('<div style="text-align:center; margin-top:20px; color:var(--text-sub); font-size:14px;">— OR —</div>', unsafe_allow_html=True)
             
             # REAL FIREBASE GOOGLE SIGNUP BRIDGE
-            components.html(auth_html.replace("Sign in with Google (Live)", "Sign up with Google (Live)"), height=70)
+            components.html(auth_html, height=70)
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Nevermind, take me back", key="close_auth"):

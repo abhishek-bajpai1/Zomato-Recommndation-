@@ -1,14 +1,15 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
-// Replace these with your actual Firebase config from the Firebase Console
+// Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDRJ7W10gM2ZFUetfmAo6QF2Lgcdq0E1Vk",
+    authDomain: "zomatoai-3cf37.firebaseapp.com",
+    projectId: "zomatoai-3cf37",
+    storageBucket: "zomatoai-3cf37.firebasestorage.app",
+    messagingSenderId: "578592166445",
+    appId: "1:578592166445:web:8c2e5c67a1c226bb7ddea4",
+    measurementId: "G-M1HC7WWPTM"
 };
 
 // Initialize Firebase

@@ -25,28 +25,28 @@ const categories = [
 
 export default function CategoryCards() {
     return (
-        <section className="container mt-8 flex gap-4" style={{ padding: '40px 20px' }}>
+        <section className="container mt-8 flex gap-8" style={{ padding: '60px 20px' }}>
             {categories.map((cat, index) => (
                 <motion.div
                     key={index}
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.05, translateY: -10 }}
                     style={{
                         flex: 1,
-                        borderRadius: '12px',
+                        borderRadius: '24px',
                         overflow: 'hidden',
-                        border: '1px solid #e8e8e8',
+                        border: '1px solid #222',
                         cursor: 'pointer',
-                        background: 'white',
-                        transition: 'box-shadow 0.2s ease'
+                        background: '#1a1a1a',
+                        transition: '0.3s'
                     }}
                     className="category-card"
                 >
-                    <div style={{ height: '160px', overflow: 'hidden' }}>
+                    <div style={{ height: '200px', overflow: 'hidden' }}>
                         <img src={cat.image} alt={cat.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
-                    <div style={{ padding: '12px 20px' }}>
-                        <h3 style={{ fontSize: '20px', fontWeight: 500, color: '#1c1c1c' }}>{cat.title}</h3>
-                        <p style={{ fontSize: '14px', color: '#4f4f4f', marginTop: '4px' }}>{cat.subtitle}</p>
+                    <div style={{ padding: '24px' }}>
+                        <h3 style={{ fontSize: '24px', fontWeight: 600, color: 'white' }}>{cat.title}</h3>
+                        <p style={{ fontSize: '15px', color: '#888', marginTop: '10px' }}>{cat.subtitle}</p>
                     </div>
                 </motion.div>
             ))}

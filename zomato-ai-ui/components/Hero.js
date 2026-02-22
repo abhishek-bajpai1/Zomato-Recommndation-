@@ -34,8 +34,8 @@ export default function Hero() {
                         alt="Zomato"
                         style={{ width: '300px', marginBottom: '20px' }}
                     />
-                    <h1 style={{ fontSize: '36px', fontWeight: 400, marginBottom: '32px' }}>
-                        Find the best restaurants, cafés and bars in Indore
+                    <h1 style={{ fontSize: '48px', fontWeight: 700, marginBottom: '32px', letterSpacing: '-1.5px' }}>
+                        Discover the best food & drinks in Bangalore
                     </h1>
                 </motion.div>
             </div>

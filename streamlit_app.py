@@ -193,6 +193,25 @@ st.markdown(f"""
     }}
     .stButton > button:hover {{ transform: scale(1.02); opacity: 0.9; }}
 
+    /* Google Sign-in Button Style */
+    .google-btn {{
+        background: white !important;
+        color: #757575 !important;
+        border: 1px solid #ddd !important;
+        border-radius: 12px !important;
+        padding: 10px 24px !important;
+        font-weight: 600 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        width: 100%;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-top: 15px;
+    }}
+    .google-btn:hover {{ background: #f8f8f8 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }}
+
     /* Mobile Adaptations */
     @media (max-width: 768px) {{
         .pill-nav {{ display: none; }}
@@ -262,6 +281,14 @@ if st.session_state.show_auth:
                     st.session_state.show_auth = None
                     st.success("Access Granted!")
                     st.rerun()
+            
+            st.markdown('<div style="text-align:center; margin-top:20px; color:var(--text-sub); font-size:14px;">— OR —</div>', unsafe_allow_html=True)
+            if st.button("Sign in with Google", key="google_login"):
+                st.session_state.logged_in = True
+                st.session_state.user_name = "Google User"
+                st.session_state.show_auth = None
+                st.success("Signed in with Google")
+                st.rerun()
         else:
             name = st.text_input("Full Identity", placeholder="Your Name")
             if st.button("Initialize Account"):
@@ -271,8 +298,17 @@ if st.session_state.show_auth:
                     st.session_state.show_auth = None
                     st.success("Profile Activated!")
                     st.rerun()
+            
+            st.markdown('<div style="text-align:center; margin-top:20px; color:var(--text-sub); font-size:14px;">— OR —</div>', unsafe_allow_html=True)
+            if st.button("Sign up with Google", key="google_signup"):
+                st.session_state.logged_in = True
+                st.session_state.user_name = "Google Explorer"
+                st.session_state.show_auth = None
+                st.success("Account created via Google")
+                st.rerun()
         
-        if st.button("Cancel", key="close_auth"):
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("Nevermind, take me back", key="close_auth"):
             st.session_state.show_auth = None
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
@@ -339,7 +375,12 @@ if df is not None:
     st.markdown('<br>', unsafe_allow_html=True)
     btn_cols = st.columns([4, 1])
     with btn_cols[0]:
-        submit = st.button("Generate Expert Recommendations ✨", use_container_width=True)
+        if st.session_state.logged_in:
+            submit = st.button("Generate Expert Recommendations ✨", use_container_width=True)
+        else:
+            st.button("Log in to Unlock AI Recommendations 🔒", disabled=True, use_container_width=True)
+            st.markdown('<p style="color:var(--zomato-red); font-size:12px; text-align:center; margin-top:5px;">Join for free to access our AI food expert</p>', unsafe_allow_html=True)
+            submit = False
     with btn_cols[1]:
         if st.button("Reset 🔄", use_container_width=True):
             st.session_state.selected_category = None
@@ -354,20 +395,32 @@ if df is not None:
     with cat_cols[0]:
         st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
         if st.button("🍱 Full Meals"):
-            st.session_state.selected_category = "Meals"
-            st.rerun()
+            if st.session_state.logged_in:
+                st.session_state.selected_category = "Meals"
+                st.rerun()
+            else:
+                st.session_state.show_auth = 'login'
+                st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     with cat_cols[1]:
         st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
         if st.button("☕ Cafes"):
-            st.session_state.selected_category = "Cafes"
-            st.rerun()
+            if st.session_state.logged_in:
+                st.session_state.selected_category = "Cafes"
+                st.rerun()
+            else:
+                st.session_state.show_auth = 'login'
+                st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     with cat_cols[2]:
         st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
         if st.button("🥂 Nightlife"):
-            st.session_state.selected_category = "Nightlife"
-            st.rerun()
+            if st.session_state.logged_in:
+                st.session_state.selected_category = "Nightlife"
+                st.rerun()
+            else:
+                st.session_state.show_auth = 'login'
+                st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 

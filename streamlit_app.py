@@ -4,6 +4,10 @@ import os
 from phase2.recommender_core import filter_restaurants
 from phase4.ranking_engine import rank_restaurants
 from phase3.llm_engine import RecommendationEngine
+from dotenv import load_dotenv
+
+# Load environment variables from the project root
+load_dotenv()
 
 # Set Page Config
 st.set_page_config(page_title="Zomato AI", page_icon="🍴", layout="wide", initial_sidebar_state="collapsed")
@@ -456,14 +460,21 @@ if df is not None:
                     """, unsafe_allow_html=True)
                 
                 res_cols = st.columns(3, gap="medium")
-                food_images = [
-                    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop",
-                    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop",
-                    "https://images.unsplash.com/photo-1476224483470-401aa1988d78?w=600&h=400&fit=crop"
+                # Verified high-quality food photography IDs from Unsplash
+                food_photo_ids = [
+                    "photo-1504674900247-0877df9cc836", # General Food
+                    "photo-1546069901-ba9599a7e63c", # Salad
+                    "photo-1567621113699-1a1df7bbad3e", # Dessert/Breakfast
+                    "photo-1555939594-58d7cb561ad1", # Meat
+                    "photo-1565299624946-b28f40a0ae38", # Pizza
+                    "photo-1482049016688-2d3e1b311543"  # Sandwich
                 ]
                 
                 for idx, (_, row) in enumerate(ranked_results.iterrows()):
-                    img_url = food_images[idx % len(food_images)]
+                    # Create a robust URL with auto-formatting and compression
+                    photo_id = food_photo_ids[idx % len(food_photo_ids)]
+                    img_url = f"https://images.unsplash.com/{photo_id}?auto=format&fit=crop&w=600&h=400&q=80"
+                    
                     with res_cols[idx]:
                         st.markdown(f"""
                         <div class="res-card">

@@ -48,6 +48,17 @@ st.markdown("Find the best places to eat in Bangalore based on your mood and tas
 # Load Data
 @st.cache_data
 def load_data():
+    if not os.path.exists("zomato_data.csv"):
+        with st.spinner("Downloading dataset from Kaggle... Please wait."):
+            try:
+                from phase1.data_loader import load_zomato_data_kaggle
+                df = load_zomato_data_kaggle()
+                if df is not None:
+                    return df
+            except Exception as e:
+                st.error(f"Failed to auto-download dataset: {e}")
+                return None
+    
     if os.path.exists("zomato_data.csv"):
         return pd.read_csv("zomato_data.csv")
     return None

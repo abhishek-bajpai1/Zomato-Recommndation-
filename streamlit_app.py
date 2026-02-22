@@ -6,182 +6,177 @@ from phase4.ranking_engine import rank_restaurants
 from phase3.llm_engine import RecommendationEngine
 
 # Set Page Config
-st.set_page_config(page_title="Zomato AI Recommender", page_icon="🍴", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Zomato AI", page_icon="🍴", layout="wide", initial_sidebar_state="collapsed")
 
-# Custom CSS for Exact Next.js Replication
+# Initialize Session State
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+if 'user_name' not in st.session_state:
+    st.session_state.user_name = ""
+if 'show_auth' not in st.session_state:
+    st.session_state.show_auth = None # 'login' or 'signup'
+
+# Custom CSS for Professional Dark UI
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
     
     :root {
         --zomato-red: #EF4F5F;
+        --accent-orange: #ff5722;
     }
 
     /* Global Body Styling */
     .stApp {
         font-family: 'Outfit', sans-serif !important;
-        background-color: #0d0d0d; /* Dark background for the main app */
+        background-color: #0d0d0d;
     }
 
     /* Hide Streamlit Header and Footer */
     header, footer {visibility: hidden;}
     #MainMenu {visibility: hidden;}
 
-    /* Clean Dark Header Replication */
+    /* Clean Dark Header */
     .header-wrapper {
-        background-color: #0b0b0b;
-        padding: 15px 5%;
+        background-color: #0d0d0d;
+        padding: 20px 5%;
         display: flex;
         justify-content: space-between;
         align-items: center;
         position: sticky;
         top: 0;
         z-index: 1000;
+        border-bottom: 1px solid #1a1a1a;
     }
 
     .brand-logo {
         color: white;
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 800;
-        letter-spacing: 1px;
+        letter-spacing: -0.5px;
         display: flex;
         align-items: center;
-        gap: 8px;
-    }
-
-    .brand-logo span {
-        color: #ff5722; /* Accent color */
-    }
-
-    .pill-nav {
-        background-color: #f2f2f2;
-        border-radius: 100px;
-        padding: 10px 40px;
-        display: flex;
-        gap: 35px;
-        align-items: center;
-    }
-
-    .nav-item {
-        color: #2d3436;
-        font-weight: 600;
-        font-size: 15px;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 4px;
+        gap: 6px;
         cursor: pointer;
     }
 
+    .brand-logo span {
+        color: var(--accent-orange);
+    }
+
+    .pill-nav {
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 100px;
+        padding: 8px 30px;
+        display: flex;
+        gap: 25px;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .nav-item {
+        color: #1c1c1c;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
     .nav-item:hover {
-        color: #ff5722;
+        color: var(--accent-orange);
     }
 
     .header-right {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 15px;
     }
 
-    .icon-circle {
-        width: 40px;
-        height: 40px;
-        background-color: #1e1e1e;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .auth-btn {
+        background: transparent;
+        border: 1px solid #333;
+        color: #ddd;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .auth-btn:hover {
+        background: #1e1e1e;
+        border-color: #555;
         color: white;
+    }
+
+    .profile-trigger {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid var(--accent-orange);
+        background: url('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80') center/cover;
         cursor: pointer;
     }
 
-    .profile-pic {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        border: 2px solid #2d3436;
-        background-image: url('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80');
-        background-size: cover;
-    }
-
-    /* Hero Section with Dark Theme */
+    /* Hero Section */
     .hero-section {
-        position: relative;
-        height: 400px;
+        height: 380px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         color: white;
         text-align: center;
-        background: linear-gradient(rgba(13,13,13,0.7), rgba(13,13,13,0.7)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+        background: linear-gradient(rgba(13,13,13,0.6), rgba(13,13,13,0.8)), url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80') center/cover;
     }
 
     .hero-tagline {
-        font-size: 48px;
+        font-size: 42px;
         font-weight: 700;
-        margin-bottom: 20px;
-        max-width: 800px;
+        margin-bottom: 10px;
+        letter-spacing: -1px;
     }
 
-    /* Clean Search Bar (Rounded with Orange Border) */
-    .search-container-wrapper {
-        max-width: 900px;
-        margin: -60px auto 40px auto;
+    /* Search Container */
+    .search-outer {
+        max-width: 1000px;
+        margin: -50px auto 40px auto;
         padding: 0 20px;
         position: relative;
         z-index: 100;
     }
 
-    .search-box-pill {
+    .search-pill-bg {
         background: white;
-        padding: 15px 30px;
-        border-radius: 50px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        border: 2px solid #ff5722; /* Orange border like in image */
+        padding: 10px 20px;
+        border-radius: 60px;
+        border: 2px solid var(--accent-orange);
+        box-shadow: 0 15px 45px rgba(0,0,0,0.4);
     }
 
-    /* Recommendation Results Dark Styling */
+    /* Authenticate Overlay */
+    .auth-overlay {
+        background: rgba(0,0,0,0.8);
+        padding: 40px;
+        border-radius: 20px;
+        border: 1px solid #333;
+        max-width: 400px;
+        margin: 20px auto;
+        text-align: center;
+    }
+
+    /* Result Cards */
     .res-card {
-        background: #1e1e1e;
-        border-radius: 16px;
+        background: #1a1a1a;
+        border-radius: 20px;
         overflow: hidden;
         margin-bottom: 25px;
-        border: 1px solid #333;
-        transition: 0.3s;
-        color: white;
+        border: 1px solid #222;
+        transition: transform 0.3s;
     }
-
-    .res-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-    }
-
-    .res-content {
-        padding: 20px;
-    }
-
-    .res-name {
-        color: #ffffff !important; /* White text for dark mode */
-        font-size: 20px;
-        font-weight: 600;
-        margin-bottom: 4px;
-    }
-
-    .res-meta {
-        color: #cccccc !important;
-        font-size: 14px;
-        margin-bottom: 8px;
-    }
-
-    .res-submeta {
-        color: #888888 !important;
-        font-size: 13px;
-        margin-bottom: 16px;
-    }
+    .res-card:hover { transform: translateY(-5px); }
 
     .rating-badge {
         background: #ff5722;
@@ -191,68 +186,106 @@ st.markdown("""
         font-weight: 700;
     }
 
-    .ai-insight {
-        background: rgba(255, 87, 34, 0.1); /* Light orange tint */
-        padding: 12px;
-        border-radius: 8px;
-        font-size: 14px;
-        border-left: 3px solid #ff5722;
-        margin-top: 16px;
-        color: #eeeeee !important;
-    }
-
-    /* Streamlit Widget Overrides */
-    .stSelectbox label, .stSlider label {
-        font-size: 14px !important;
-        color: #666 !important;
-        margin-bottom: 8px !important;
-    }
-    
-    .stButton > button {
-        background-color: var(--zomato-red) !important;
-        color: white !important;
-        border-radius: 8px !important;
-        padding: 16px !important;
-        font-size: 18px !important;
-        font-weight: 600 !important;
+    /* Streamlit Overrides */
+    .stSelectbox div[data-baseweb="select"] {
         border: none !important;
-        width: 100% !important;
-        transition: all 0.2s ease !important;
+        background-color: transparent !important;
     }
+    .stSelectbox svg { color: #666 !important; }
 
-    .stButton > button:hover {
-        background-color: #d83a4a !important;
-        box-shadow: 0 4px 12px rgba(239, 79, 95, 0.3) !important;
+    .stButton > button {
+        background: var(--zomato-red) !important;
+        color: white !important;
+        border-radius: 10px !important;
+        height: 50px !important;
+        font-weight: 700 !important;
+        border: none !important;
+        transition: 0.3s !important;
     }
+    .stButton > button:hover { opacity: 0.9; transform: scale(1.02); }
     </style>
     """, unsafe_allow_html=True)
 
-# 1. CLEAN DARK HEADER
-st.markdown("""
-<div class="header-wrapper">
-    <div class="brand-logo">ZOMATO<span>AI</span></div>
-    <div class="pill-nav">
-        <a class="nav-item">Home <span>↑</span></a>
-        <a class="nav-item">Top Rated <span>↑</span></a>
-        <a class="nav-item">Trending <span>↑</span></a>
-        <a class="nav-item">Collections <span>↑</span></a>
-        <a class="nav-item">Contact <span>↑</span></a>
-    </div>
-    <div class="header-right">
-        <div class="icon-circle">🔍</div>
-        <div class="profile-pic"></div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# 1. NAVBAR
+cols = st.columns([1, 4, 1.5])
 
-# 2. DARK HERO
+with cols[0]:
+    st.markdown('<div class="brand-logo">ZOMATO<span>AI</span></div>', unsafe_allow_html=True)
+
+with cols[1]:
+    st.markdown("""
+    <div style="display: flex; justify-content: center;">
+        <div class="pill-nav">
+            <span class="nav-item">Home</span>
+            <span class="nav-item">Dining</span>
+            <span class="nav-item">Nightlife</span>
+            <span class="nav-item">Trending</span>
+            <span class="nav-item">Contact</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with cols[2]:
+    if not st.session_state.logged_in:
+        auth_cols = st.columns(2)
+        with auth_cols[0]:
+            if st.button("Log in", key="login_btn"):
+                st.session_state.show_auth = 'login'
+        with auth_cols[1]:
+            if st.button("Sign up", key="signup_btn"):
+                st.session_state.show_auth = 'signup'
+    else:
+        st.markdown(f"""
+        <div class="header-right">
+            <span style="color: white; font-weight: 500;">Hi, {st.session_state.user_name}</span>
+            <div class="profile-trigger"></div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Logout", key="logout_btn"):
+            st.session_state.logged_in = False
+            st.rerun()
+
+# 2. AUTH MODAL (Inline)
+if st.session_state.show_auth:
+    with st.container():
+        st.markdown(f'<div class="auth-overlay">', unsafe_allow_html=True)
+        st.markdown(f'<h2 style="color:white; margin-bottom:20px;">{"Log in" if st.session_state.show_auth == "login" else "Create Account"}</h2>', unsafe_allow_html=True)
+        
+        email = st.text_input("Email", placeholder="Enter your email")
+        password = st.text_input("Password", type="password", placeholder="Enter password")
+        
+        if st.session_state.show_auth == 'login':
+            if st.button("Confirm Login"):
+                if email and password:
+                    st.session_state.logged_in = True
+                    st.session_state.user_name = email.split('@')[0].capitalize()
+                    st.session_state.show_auth = None
+                    st.success("Welcome back!")
+                    st.rerun()
+        else:
+            name = st.text_input("Full Name", placeholder="Your Name")
+            if st.button("Create Account"):
+                if email and password and name:
+                    st.session_state.logged_in = True
+                    st.session_state.user_name = name
+                    st.session_state.show_auth = None
+                    st.success("Account created!")
+                    st.rerun()
+        
+        if st.button("Close"):
+            st.session_state.show_auth = None
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# 3. HERO
 st.markdown("""
 <div class="hero-section">
     <h1 class="hero-tagline">Discover the best food & drinks in Bangalore</h1>
+    <p style="color: #ccc; font-size: 18px;">Powered by Zomato AI Insights</p>
 </div>
 """, unsafe_allow_html=True)
 
-# 3. AI RECOMMENDER (Pill Search Bar)
+# 4. SEARCH PILL
 @st.cache_data
 def load_data():
     if not os.path.exists("zomato_data.csv"):
@@ -264,102 +297,88 @@ def load_data():
 
 df = load_data()
 
-st.markdown('<div class="search-container-wrapper"><div class="search-box-pill">', unsafe_allow_html=True)
-st.markdown('<div style="color:#ff5722; font-size:20px;">🔍</div>', unsafe_allow_html=True)
-
+st.markdown('<div class="search-outer"><div class="search-pill-bg">', unsafe_allow_html=True)
 if df is not None:
-    # Use Streamlit columns for the actual interactive inputs inside the pill container
-    c1, c2, c3, c4 = st.columns([1.5, 1, 1, 1])
-    
-    with c1:
+    s_cols = st.columns([0.2, 1.5, 1, 1, 0.8])
+    with s_cols[0]:
+        st.markdown('<div style="color:#ff5722; font-size:24px; padding-top:5px;">🔍</div>', unsafe_allow_html=True)
+    with s_cols[1]:
         locations = sorted(df['area'].unique().tolist())
-        location = st.selectbox("Where?", ["Select Area"] + locations, label_visibility="collapsed")
-    
-    with c2:
+        location = st.selectbox("Area", ["Bangalore Central"] + locations, label_visibility="collapsed")
+    with s_cols[2]:
         cuisines_list = ['All Cuisines', 'North Indian', 'Chinese', 'South Indian', 'Fast Food', 'Biryani', 'Cafe', 'Pizza']
-        cuisine = st.selectbox("Cuisine?", cuisines_list, label_visibility="collapsed")
-        
-    with c3:
+        cuisine = st.selectbox("Cuisine", cuisines_list, label_visibility="collapsed")
+    with s_cols[3]:
         budget_map = {"Any Budget": None, "Under ₹500": "budget", "₹500-₹1500": "mid", "Above ₹1500": "premium"}
-        budget_label = st.selectbox("Budget?", list(budget_map.keys()), label_visibility="collapsed")
+        budget_label = st.selectbox("Budget", list(budget_map.keys()), label_visibility="collapsed")
         price_val = budget_map[budget_label]
-        
-    with c4:
-        rating_val = st.selectbox("Rating?", ["3.0+", "3.5+", "4.0+", "4.5+"], index=2, label_visibility="collapsed")
+    with s_cols[4]:
+        rating_val = st.selectbox("Rating", ["3.0+", "3.5+", "4.0+", "4.5+"], index=2, label_visibility="collapsed")
         rating_num = float(rating_val.replace("+", ""))
-
-    st.markdown('</div>', unsafe_allow_html=True) # End search-box-pill
+    st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown('<br>', unsafe_allow_html=True)
-    submit = st.button("Search for AI Recommendations")
-    st.markdown('</div>', unsafe_allow_html=True) # End search-container-wrapper
+    submit = st.button("Get AI Recommendations ✨", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # 4. CATEGORY TILES (Dark Mode Compatible)
+    # 4. CATEGORY TILES
     st.markdown("""
-    <div style="padding: 40px 10%; display: flex; gap: 20px;">
-        <div style="flex:1; background:#1e1e1e; padding:30px; border-radius:20px; border:1px solid #333; text-align:center;">
-            <div style="font-size:40px; margin-bottom:10px;">🥘</div>
-            <div style="color:white; font-size:20px; font-weight:600;">Full Meals</div>
+    <div style="padding: 20px 10%; display: flex; gap: 20px;">
+        <div style="flex:1; background:#1a1a1a; padding:35px; border-radius:24px; border:1px solid #222; text-align:center;">
+            <div style="font-size:45px; margin-bottom:15px;">🍱</div>
+            <div style="color:white; font-size:20px; font-weight:700;">Full Meals</div>
         </div>
-        <div style="flex:1; background:#1e1e1e; padding:30px; border-radius:20px; border:1px solid #333; text-align:center;">
-            <div style="font-size:40px; margin-bottom:10px;">☕</div>
-            <div style="color:white; font-size:20px; font-weight:600;">Cafes</div>
+        <div style="flex:1; background:#1a1a1a; padding:35px; border-radius:24px; border:1px solid #222; text-align:center;">
+            <div style="font-size:45px; margin-bottom:15px;">☕</div>
+            <div style="color:white; font-size:20px; font-weight:700;">Cafes</div>
         </div>
-        <div style="flex:1; background:#1e1e1e; padding:30px; border-radius:20px; border:1px solid #333; text-align:center;">
-            <div style="font-size:40px; margin-bottom:10px;">🍸</div>
-            <div style="color:white; font-size:20px; font-weight:600;">Nightlife</div>
+        <div style="flex:1; background:#1a1a1a; padding:35px; border-radius:24px; border:1px solid #222; text-align:center;">
+            <div style="font-size:45px; margin-bottom:15px;">🥂</div>
+            <div style="color:white; font-size:20px; font-weight:700;">Nightlife</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 5. RECOMMENDATIONS RESULTS
     if submit:
-        if location == "Select Neighborhood":
-            st.warning("📍 Please select a neighborhood to get recommendations.")
-        else:
-            with st.spinner("Finding best matches for you..."):
-                c_filter = None if cuisine == "All Cuisines" else cuisine
-                filtered_df = filter_restaurants(df, price=price_val, place=location, rating=rating_num, cuisine=c_filter)
+        with st.spinner("Analyzing recommendations..."):
+            c_filter = None if cuisine == "All Cuisines" else cuisine
+            # Use fixed location if default selected
+            loc_query = "Basavanagudi" if location == "Bangalore Central" else location
+            filtered_df = filter_restaurants(df, price=price_val, place=loc_query, rating=rating_num, cuisine=c_filter)
+            
+            if filtered_df.empty:
+                st.warning("No matches found. Try relaxing your filters!")
+            else:
+                ranked_results = rank_restaurants(filtered_df).head(3)
+                st.markdown(f'<div style="padding: 0 10% 80px 10%;"><h2 style="color:white; margin-bottom:30px;">Top Picks for You</h2>', unsafe_allow_html=True)
                 
-                if filtered_df.empty:
-                    st.markdown(f"<div style='text-align:center; color:#666; padding:40px;'>No recommendations returned for {location}. Try relaxing filters.</div>", unsafe_allow_html=True)
-                else:
-                    ranked_results = rank_restaurants(filtered_df).head(3)
-                    st.markdown(f"<div class='res-container'><h3>Top Picks for You in {location}</h3><div class='res-grid'>", unsafe_allow_html=True)
-                    
-                    # LLM Insight Engine
-                    engine = RecommendationEngine()
-                    preferences_str = f"{location}, {cuisine}, {budget_label}, {rating_val}"
-                    ai_full_insight = engine.get_recommendations(preferences_str, ranked_results)
-                    
-                    res_cols = st.columns(3)
-                    food_images = [
-                        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop",
-                        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop",
-                        "https://images.unsplash.com/photo-1476224483470-401aa1988d78?w=400&h=300&fit=crop"
-                    ]
-                    
-                    for idx, (_, row) in enumerate(ranked_results.iterrows()):
-                        img_url = food_images[idx % len(food_images)]
-                        with res_cols[idx]:
-                            st.markdown(f"""
-                            <div class="res-card">
-                                <img src="{img_url}" style="width: 100%; height: 200px; object-fit: cover;">
-                                <div class="res-content">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                        <div class="res-name">{row['restaurant name']}</div>
-                                        <span class="rating-badge">{row['rate (out of 5)']} ★</span>
-                                    </div>
-                                    <div class="res-meta">{row['cuisines type']}</div>
-                                    <div class="res-submeta">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
-                                    <div class="ai-insight">
-                                        <strong>AI Insight:</strong> Matches your {cuisine} preference in {location}.
-                                    </div>
+                res_cols = st.columns(3)
+                food_images = [
+                    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop",
+                    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop",
+                    "https://images.unsplash.com/photo-1476224483470-401aa1988d78?w=600&h=400&fit=crop"
+                ]
+                
+                for idx, (_, row) in enumerate(ranked_results.iterrows()):
+                    img_url = food_images[idx % len(food_images)]
+                    with res_cols[idx]:
+                        st.markdown(f"""
+                        <div class="res-card">
+                            <img src="{img_url}" style="width: 100%; height: 220px; object-fit: cover;">
+                            <div style="padding: 24px;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                    <div style="color: white; font-size: 20px; font-weight: 700;">{row['restaurant name']}</div>
+                                    <span class="rating-badge">{row['rate (out of 5)']} ★</span>
+                                </div>
+                                <div style="color: #aaa; font-size: 14px; margin-bottom: 8px;">{row['cuisines type']}</div>
+                                <div style="color: #666; font-size: 13px; margin-bottom: 20px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
+                                <div style="background: rgba(255, 87, 34, 0.08); padding: 15px; border-radius: 12px; border-left: 4px solid #ff5722; color: #eee; font-size: 14px;">
+                                    <strong>AI Insight:</strong> A premium match based on your {cuisine} preference in {location}.
                                 </div>
                             </div>
-                            """, unsafe_allow_html=True)
-                    st.markdown("</div></div>", unsafe_allow_html=True)
+                        </div>
+                        """, unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
 
 else:
-    st.markdown('<div class="recommender-card-wrapper"></div>', unsafe_allow_html=True)
-    st.error("Dataset not found. Please refresh or check connection.")
+    st.error("Dataset not found. Please verify the connection.")

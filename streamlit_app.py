@@ -353,7 +353,7 @@ if st.session_state.show_auth:
             st.markdown('<div style="text-align:center; margin-top:20px; color:var(--text-sub); font-size:14px;">— OR —</div>', unsafe_allow_html=True)
             
             # REAL FIREBASE GOOGLE AUTH BRIDGE
-            components.html(get_auth_html("Sign in with Google (Live)"), height=75, key="google_auth_bridge")
+            components.html(get_auth_html("Sign in with Google (Live)"), height=75)
 
         else:
             name = st.text_input("Full Identity", placeholder="Your Name")
@@ -368,7 +368,7 @@ if st.session_state.show_auth:
             st.markdown('<div style="text-align:center; margin-top:20px; color:var(--text-sub); font-size:14px;">— OR —</div>', unsafe_allow_html=True)
             
             # REAL FIREBASE GOOGLE SIGNUP BRIDGE
-            components.html(get_auth_html("Sign up with Google (Live)"), height=75, key="google_signup_bridge")
+            components.html(get_auth_html("Sign up with Google (Live)"), height=75)
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Nevermind, take me back", key="close_auth"):

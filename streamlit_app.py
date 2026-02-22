@@ -164,6 +164,25 @@ st.markdown("""
         padding: 20px;
     }
 
+    .res-name {
+        color: #ffffff !important; /* White text for dark mode */
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .res-meta {
+        color: #cccccc !important;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .res-submeta {
+        color: #888888 !important;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
     .rating-badge {
         background: #ff5722;
         color: white;
@@ -173,12 +192,13 @@ st.markdown("""
     }
 
     .ai-insight {
-        background: #fdf0f1;
+        background: rgba(255, 87, 34, 0.1); /* Light orange tint */
         padding: 12px;
         border-radius: 8px;
         font-size: 14px;
-        border-left: 3px solid var(--zomato-red);
+        border-left: 3px solid #ff5722;
         margin-top: 16px;
+        color: #eeeeee !important;
     }
 
     /* Streamlit Widget Overrides */
@@ -312,20 +332,26 @@ if df is not None:
                     preferences_str = f"{location}, {cuisine}, {budget_label}, {rating_val}"
                     ai_full_insight = engine.get_recommendations(preferences_str, ranked_results)
                     
-                    cols = st.columns(3)
+                    res_cols = st.columns(3)
+                    food_images = [
+                        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop",
+                        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop",
+                        "https://images.unsplash.com/photo-1476224483470-401aa1988d78?w=400&h=300&fit=crop"
+                    ]
+                    
                     for idx, (_, row) in enumerate(ranked_results.iterrows()):
-                        with cols[idx]:
-                            # Render individual card
+                        img_url = food_images[idx % len(food_images)]
+                        with res_cols[idx]:
                             st.markdown(f"""
                             <div class="res-card">
-                                <div class="res-img" style="background-image: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80&sig={idx}');"></div>
+                                <img src="{img_url}" style="width: 100%; height: 200px; object-fit: cover;">
                                 <div class="res-content">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                        <div style="font-size: 20px; font-weight: 600; color: #1c1c1c;">{row['restaurant name']}</div>
+                                        <div class="res-name">{row['restaurant name']}</div>
                                         <span class="rating-badge">{row['rate (out of 5)']} ★</span>
                                     </div>
-                                    <div style="color: #4f4f4f; font-size: 14px; margin-bottom: 8px;">{row['cuisines type']}</div>
-                                    <div style="color: #9c9c9c; font-size: 13px; margin-bottom: 16px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
+                                    <div class="res-meta">{row['cuisines type']}</div>
+                                    <div class="res-submeta">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
                                     <div class="ai-insight">
                                         <strong>AI Insight:</strong> Matches your {cuisine} preference in {location}.
                                     </div>

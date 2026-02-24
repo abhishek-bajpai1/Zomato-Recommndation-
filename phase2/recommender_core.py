@@ -40,6 +40,26 @@ def filter_restaurants(df, price=None, place=None, rating=0.0, cuisine=None):
 
     return filtered_df
 
+def get_trending_restaurants(df, top_n=10, min_ratings=500):
+    """
+    Identifies trending restaurants based on high ratings and a significant number of votes.
+    """
+    trending_df = df.copy()
+    col_rate = 'rate (out of 5)'
+    col_votes = 'num of ratings'
+    
+    # Ensure numeric types
+    trending_df[col_rate] = pd.to_numeric(trending_df[col_rate], errors='coerce').fillna(0.0)
+    trending_df[col_votes] = pd.to_numeric(trending_df[col_votes], errors='coerce').fillna(0)
+    
+    # Filter for minimum votes to ensure popularity
+    trending_df = trending_df[trending_df[col_votes] >= min_ratings]
+    
+    # Sort by rating and then by votes
+    trending_df = trending_df.sort_values(by=[col_rate, col_votes], ascending=[False, False])
+    
+    return trending_df.head(top_n)
+
 if __name__ == "__main__":
     if os.path.exists("zomato_data.csv"):
         df = pd.read_csv("zomato_data.csv")

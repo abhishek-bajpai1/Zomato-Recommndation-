@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 import os
-from recommender_core import filter_restaurants
+from recommender_core import filter_restaurants, get_trending_restaurants
 
 class TestPhase2(unittest.TestCase):
     @classmethod
@@ -22,6 +22,15 @@ class TestPhase2(unittest.TestCase):
         results = filter_restaurants(self.df, rating=4.5)
         self.assertTrue((results['rate (out of 5)'] >= 4.5).all())
         print(f"Filtered by rating 4.5+: {len(results)} matches")
+
+    def test_trending_restaurants(self):
+        results = get_trending_restaurants(self.df, top_n=5, min_ratings=500)
+        self.assertEqual(len(results), 5)
+        self.assertTrue((results['num of ratings'] >= 500).all())
+        # Check sort order
+        ratings = results['rate (out of 5)'].tolist()
+        self.assertTrue(ratings == sorted(ratings, reverse=True))
+        print(f"Trending restaurants top 5: {results['restaurant name'].tolist()}")
 
 if __name__ == "__main__":
     unittest.main()

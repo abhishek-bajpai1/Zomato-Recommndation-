@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from phase2.recommender_core import filter_restaurants
+from phase2.recommender_core import filter_restaurants, get_trending_restaurants
 from phase4.ranking_engine import rank_restaurants
 from phase3.llm_engine import RecommendationEngine
 from dotenv import load_dotenv
@@ -485,7 +485,7 @@ if df is not None:
         """)
 
     st.markdown('<h3 style="text-align:center; margin-bottom:20px; color:var(--text-main); font-weight:700;">Explore categories</h3>', unsafe_allow_html=True)
-    cat_cols = st.columns(3)
+    cat_cols = st.columns(4)
     
     with cat_cols[0]:
         st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
@@ -517,26 +517,40 @@ if df is not None:
                 st.session_state.show_auth = 'login'
                 st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
+    with cat_cols[3]:
+        st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
+        if st.button("🔥 Trending"):
+            if st.session_state.logged_in:
+                st.session_state.selected_category = "Trending"
+                st.rerun()
+            else:
+                st.session_state.show_auth = 'login'
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if submit:
+    if submit or st.session_state.selected_category == "Trending":
         with st.spinner("Zomato AI is analyzing the best matches for you..."):
-            c_filter = None if cuisine == "All Cuisines" else cuisine
-            loc_query = None if location == "Any Location" else location
-            
-            filtered_df = filter_restaurants(df, price=price_val, place=loc_query, rating=rating_num, cuisine=c_filter)
+            if st.session_state.selected_category == "Trending":
+                ranked_results = get_trending_restaurants(df, top_n=3)
+                filtered_df = ranked_results # To bypass empty check
+                user_query = "What are the hottest, highest-rated trending restaurants in Bangalore right now?"
+            else:
+                c_filter = None if cuisine == "All Cuisines" else cuisine
+                loc_query = None if location == "Any Location" else location
+                
+                filtered_df = filter_restaurants(df, price=price_val, place=loc_query, rating=rating_num, cuisine=c_filter)
+                ranked_results = rank_restaurants(filtered_df).head(3)
+                user_query = f"I'm looking for {cuisine} food in {location} with a {budget_label} budget."
             
             if filtered_df.empty:
                 st.error("No matches found for this combination. Try expanding your search area or budget!")
             else:
-                ranked_results = rank_restaurants(filtered_df).head(3)
-                
                 # GET REAL AI INSIGHTS
-                user_query = f"I'm looking for {cuisine} food in {location} with a {budget_label} budget."
                 ai_expert_content = st.session_state.ai_engine.get_recommendations(user_query, ranked_results)
                 
                 # AI INSIGHT PANEL
-                st.markdown(f'<div style="padding: 0 10% 80px 10%;"><h2 style="color:var(--text-main); margin-bottom:20px; font-weight:800; letter-spacing:-1px;">Expert AI Match Score</h2>', unsafe_allow_html=True)
+                st.markdown(f'<div style="padding: 0 10% 80px 10%;"><h2 style="color:var(--text-main); margin-bottom:20px; font-weight:800; letter-spacing:-1px;">{"🔥 Trending Now" if st.session_state.selected_category == "Trending" else "Expert AI Match Score"}</h2>', unsafe_allow_html=True)
                 
                 _, ai_box_col, _ = st.columns([0.1, 5, 0.1])
                 with ai_box_col:
@@ -545,7 +559,7 @@ if df is not None:
                                 padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); 
                                 border-left: 8px solid var(--zomato-red); margin-bottom: 40px;">
                         <span style="font-size: 24px; margin-right: 15px;">🤖</span> 
-                        <span style="color: var(--text-main); font-weight: 700; font-size: 18px;">Personalized Concierge Insight:</span>
+                        <span style="color: var(--text-main); font-weight: 700; font-size: 18px;">{'AI Trend Analysis:' if st.session_state.selected_category == 'Trending' else 'Personalized Concierge Insight:'}</span>
                         <p style="color: var(--text-main); line-height: 1.6; margin-top: 15px; font-size: 16px;">{ai_expert_content[:450]}...</p>
                     </div>
                     """, unsafe_allow_html=True)
@@ -578,7 +592,7 @@ if df is not None:
                                 <div style="color: var(--text-sub); font-size: 14px; margin-bottom: 8px;">{row['cuisines type']}</div>
                                 <div style="color: var(--text-sub); font-size: 13px; margin-bottom: 20px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
                                 <div style="background: var(--surface-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); color: var(--text-main); font-size: 14px;">
-                                    <strong>AI Insight:</strong> A premium match based on your preferences.
+                                    <strong>AI Insight:</strong> {'🔥 One of the hottest spots in town right now!' if st.session_state.selected_category == "Trending" else 'A premium match based on your preferences.'}
                                 </div>
                             </div>
                         </div>

@@ -63,7 +63,7 @@ class RecommendationEngine:
                         "content": prompt,
                     }
                 ],
-                model="llama3-8b-8192",
+                model="llama-3.1-8b-instant",
             )
             return chat_completion.choices[0].message.content
         except Exception as e:

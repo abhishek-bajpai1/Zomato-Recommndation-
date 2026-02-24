@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 import streamlit.components.v1 as components
 import json
 import base64
+from phase5.kpt_engine import KPTEngine, get_kpt_confidence
+from phase5.shadow_kpt import ShadowKPTEstimator, fuse_kpt_signals
+import random
 
 # Load environment variables FIRST
 load_dotenv(override=True)
@@ -238,6 +241,57 @@ st.markdown(f"""
         font-size: 14px;
     }}
 
+    /* KPT Kitchen Health Dashboard Styles */
+    .kpt-badge {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 10px;
+    }}
+    .health-green {{ background: #e7f7ed; color: #1c8c44; border: 1px solid #d1f0db; }}
+    .health-amber {{ background: #fff8e1; color: #b78103; border: 1px solid #ffecb3; }}
+    .health-red   {{ background: #fff5f5; color: #e03131; border: 1px solid #ffe3e3; }}
+
+    .signal-dot {{
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }}
+    .dot-green {{ background: #1c8c44; box-shadow: 0 0 8px #1c8c44; }}
+    .dot-amber {{ background: #b78103; box-shadow: 0 0 8px #b78103; }}
+    .dot-red   {{ background: #e03131; box-shadow: 0 0 8px #e03131; }}
+
+    .kpt-details {{
+        background: {theme_vars['surface_color']};
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 12px;
+        font-size: 13px;
+    }}
+    .signal-row {{
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        color: var(--text-sub);
+    }}
+    .signal-val {{
+        font-weight: 700;
+        color: var(--text-main);
+    }}
+    .shadow-diff {{
+        font-size: 11px;
+        font-style: italic;
+        color: var(--text-sub);
+    }}
+
     /* Auth Overlay as Elegant Card */
     .auth-card {{
         background: var(--card-bg);
@@ -308,6 +362,12 @@ st.markdown(f"""
 
 # 1. NAVBAR Reconstruction
 cols = st.columns([1, 4, 1.5], gap="large")
+
+# 0.5 Initialize KPT Engines
+if 'kpt_engine' not in st.session_state:
+    st.session_state.kpt_engine = KPTEngine()
+if 'shadow_estimator' not in st.session_state:
+    st.session_state.shadow_estimator = ShadowKPTEstimator()
 
 # Initialize Recommendation Engine
 if 'ai_engine' not in st.session_state:
@@ -606,6 +666,31 @@ if df is not None:
                     photo_id = food_photo_ids[idx % len(food_photo_ids)]
                     img_url = f"https://images.unsplash.com/{photo_id}?auto=format&fit=crop&w=600&h=400&q=80"
                     
+                    # --- PHASE 5: KPT SIGNAL SIMULATION ---
+                    # Simulate real-time kitchen stress for this restaurant
+                    mock_orders = [{'complexity': random.choice(['Simple', 'Medium', 'Complex'])} for _ in range(random.randint(2, 8))]
+                    kli = st.session_state.kpt_engine.calculate_kli(mock_orders, historical_rush_factor=random.uniform(0.8, 1.4))
+                    
+                    # Simulate merchant reliability (0.6 - 1.0)
+                    mpbs = random.uniform(0.65, 0.95)
+                    
+                    # Predict KPT
+                    base_prep = 20.0
+                    predicted_kpt = st.session_state.kpt_engine.predict_kpt(base_prep, kli, mpbs)
+                    confidence = get_kpt_confidence(mpbs, kli)
+                    
+                    # Shadow Ground Truth simulation
+                    shadow_bias = random.uniform(-5, 2) # Minutes
+                    shadow_kpt = predicted_kpt + shadow_bias
+                    
+                    # Final Calibrated Prep Time
+                    calibrated_kpt = fuse_kpt_signals(predicted_kpt, shadow_kpt, confidence_weight=0.6)
+                    
+                    # UI Indicators
+                    health_class = "health-green" if kli < 8 else ("health-amber" if kli < 15 else "health-red")
+                    dot_class = "dot-green" if kli < 8 else ("dot-amber" if kli < 15 else "dot-red")
+                    health_status = "Good" if kli < 8 else ("Busy" if kli < 15 else "Stressed")
+
                     with res_cols[idx]:
                         st.markdown(f"""
                         <div class="res-card">
@@ -617,12 +702,39 @@ if df is not None:
                                 </div>
                                 <div style="color: var(--text-sub); font-size: 14px; margin-bottom: 8px;">{row['cuisines type']}</div>
                                 <div style="color: var(--text-sub); font-size: 13px; margin-bottom: 20px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
-                                <div style="background: var(--surface-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); color: var(--text-main); font-size: 14px;">
-                                    <strong>AI Insight:</strong> {'🔥 One of the hottest spots in town right now!' if st.session_state.selected_category == "Trending" else 'A premium match based on your preferences.'}
+                                
+                                <div class="kpt-badge {health_class}">
+                                    <span class="signal-dot {dot_class}"></span>
+                                    Kitchen Status: {health_status}
+                                </div>
+
+                                <div style="background: var(--surface-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); color: var(--text-main); font-size: 14px; margin-top: 15px;">
+                                    <strong>Prep Time:</strong> ~{int(calibrated_kpt)} mins ({confidence} Confidence) ⏱️
                                 </div>
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
+                        
+                        with st.expander("⚡ KPT Signal Intelligence"):
+                            st.markdown(f"""
+                            <div class="kpt-details">
+                                <div class="signal-row">
+                                    <span>Kitchen Load Index (KLI)</span>
+                                    <span class="signal-val">{kli}</span>
+                                </div>
+                                <div class="signal-row">
+                                    <span>Merchant Trust Score</span>
+                                    <span class="signal-val">{int(mpbs*100)}%</span>
+                                </div>
+                                <div class="signal-row">
+                                    <span>Shadow GPS Signal</span>
+                                    <span class="signal-val">Detected</span>
+                                </div>
+                                <div class="shadow-diff">
+                                    Bias Calibration: {shadow_bias:.1f} mins offset applied to manual signal
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
 
 else:

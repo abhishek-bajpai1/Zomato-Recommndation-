@@ -694,47 +694,45 @@ if df is not None:
                     with res_cols[idx]:
                         st.markdown(f"""
 <div class="res-card">
-    <img src="{img_url}" style="width: 100%; height: 200px; object-fit: cover;">
-    <div style="padding: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-            <div style="color: var(--text-main); font-size: 20px; font-weight: 700;">{row['restaurant name']}</div>
-            <span class="rating-badge">{row['rate (out of 5)']} ★</span>
-        </div>
-        <div style="color: var(--text-sub); font-size: 14px; margin-bottom: 8px;">{row['cuisines type']}</div>
-        <div style="color: var(--text-sub); font-size: 13px; margin-bottom: 20px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
-        
-        <div class="kpt-badge {health_class}">
-            <span class="signal-dot {dot_class}"></span>
-            Kitchen Status: {health_status}
-        </div>
-
-        <div style="background: var(--surface-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); color: var(--text-main); font-size: 14px; margin-top: 15px;">
-            <strong>Prep Time:</strong> ~{int(calibrated_kpt)} mins ({confidence} Confidence) ⏱️
-        </div>
-    </div>
+<img src="{img_url}" style="width: 100%; height: 200px; object-fit: cover;">
+<div style="padding: 24px;">
+<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+<div style="color: var(--text-main); font-size: 20px; font-weight: 700;">{row['restaurant name']}</div>
+<span class="rating-badge">{row['rate (out of 5)']} ★</span>
+</div>
+<div style="color: var(--text-sub); font-size: 14px; margin-bottom: 8px;">{row['cuisines type']}</div>
+<div style="color: var(--text-sub); font-size: 13px; margin-bottom: 20px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
+<div class="kpt-badge {health_class}">
+<span class="signal-dot {dot_class}"></span>
+Kitchen Status: {health_status}
+</div>
+<div style="background: var(--surface-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); color: var(--text-main); font-size: 14px; margin-top: 15px;">
+<strong>Prep Time:</strong> ~{int(calibrated_kpt)} mins ({confidence} Confidence) ⏱️
+</div>
+</div>
 </div>
 """, unsafe_allow_html=True)
                         
                         with st.expander("⚡ KPT Signal Intelligence"):
                             st.markdown(f"""
-                            <div class="kpt-details">
-                                <div class="signal-row">
-                                    <span>Kitchen Load Index (KLI)</span>
-                                    <span class="signal-val">{kli}</span>
-                                </div>
-                                <div class="signal-row">
-                                    <span>Merchant Trust Score</span>
-                                    <span class="signal-val">{int(mpbs*100)}%</span>
-                                </div>
-                                <div class="signal-row">
-                                    <span>Shadow GPS Signal</span>
-                                    <span class="signal-val">Detected</span>
-                                </div>
-                                <div class="shadow-diff">
-                                    Bias Calibration: {shadow_bias:.1f} mins offset applied to manual signal
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
+<div class="kpt-details">
+<div class="signal-row">
+<span>Kitchen Load Index (KLI)</span>
+<span class="signal-val">{kli}</span>
+</div>
+<div class="signal-row">
+<span>Merchant Trust Score</span>
+<span class="signal-val">{int(mpbs*100)}%</span>
+</div>
+<div class="signal-row">
+<span>Shadow GPS Signal</span>
+<span class="signal-val">Detected</span>
+</div>
+<div class="shadow-diff">
+Bias Calibration: {shadow_bias:.1f} mins offset applied to manual signal
+</div>
+</div>
+""", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
 
 else:

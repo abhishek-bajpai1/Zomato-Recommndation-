@@ -24,38 +24,52 @@ FIREBASE_CONFIG = {
 def get_auth_html(button_text):
     config_json = json.dumps(FIREBASE_CONFIG)
     return f"""
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
-        const firebaseConfig = {config_json};
-        if (!firebase.apps.length) {{
-            firebase.initializeApp(firebaseConfig);
+        function parseJwt(token) {{
+            try {{
+                var base64Url = token.split('.')[1];
+                var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {{
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }}).join(''));
+                return JSON.parse(jsonPayload);
+            }} catch (e) {{
+                return null;
+            }}
         }}
-        const provider = new firebase.auth.GoogleAuthProvider();
-        
-        // Handle the redirect result when the page loads
-        firebase.auth().getRedirectResult()
-            .then((result) => {{
-                if (result.user) {{
-                    const user = result.user;
-                    const name = encodeURIComponent(user.displayName || user.email.split('@')[0]);
-                    const baseUrl = window.parent.location.origin + window.parent.location.pathname;
-                    
-                    // Critical: Redirect the parent window to the app with success params
-                    window.parent.location.href = baseUrl + `?auth_success=true&user_name=${{name}}`;
-                }}
-            }}).catch((error) => {{
-                console.error("Auth Redirect Error:", error);
-                // Don't alert here as it might show on initial page load
+
+        function handleCredentialResponse(response) {{
+            const responsePayload = parseJwt(response.credential);
+            if (responsePayload) {{
+                const name = encodeURIComponent(responsePayload.name || responsePayload.given_name || "User");
+                const baseUrl = window.parent.location.origin + window.parent.location.pathname;
+                
+                // Redirect the parent window to the app with success params
+                window.parent.location.href = baseUrl + `?auth_success=true&user_name=${{name}}`;
+            }}
+        }}
+
+        window.onload = function () {{
+            google.accounts.id.initialize({{
+                client_id: "578592166445-i1g04ud8ohcricufo8ctgemqv3d4k6vj.apps.googleusercontent.com",
+                callback: handleCredentialResponse
             }});
+        }}
 
         function signIn() {{
-            // signInWithPopup is blocked in Streamlit iframes; using Redirect instead
-            firebase.auth().signInWithRedirect(provider);
+            google.accounts.id.prompt(); // Also display the One Tap dialog
+            // Or explicitly trigger the popup/redirect
+            google.accounts.id.requestCode(); 
+        }}
+        
+        // Simpler approach for the button click:
+        function triggerGoogleLogin() {{
+            google.accounts.id.prompt();
         }}
     </script>
     <div style="padding: 0 5px;">
-        <button onclick="signIn()" style="
+        <button onclick="triggerGoogleLogin()" style="
             background: white; color: #757575; border: 1px solid #ddd;
             border-radius: 12px; padding: 12px 24px; font-weight: 600;
             display: flex; align-items: center; justify-content: center;

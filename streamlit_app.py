@@ -7,6 +7,7 @@ from phase3.llm_engine import RecommendationEngine
 from dotenv import load_dotenv
 import streamlit.components.v1 as components
 import json
+import base64
 
 # Load environment variables FIRST
 load_dotenv(override=True)
@@ -312,8 +313,17 @@ cols = st.columns([1, 4, 1.5], gap="large")
 if 'ai_engine' not in st.session_state:
     st.session_state.ai_engine = RecommendationEngine()
 
+# Load and encode logo for header
+with open("assets/zomato_logo.png", "rb") as f:
+    logo_base64 = base64.b64encode(f.read()).decode()
+
 with cols[0]:
-    st.markdown('<div class="brand-logo">ZOMATO<span>AI</span></div>', unsafe_allow_html=True)
+    st.markdown(f'''
+        <div class="brand-logo" style="display: flex; align-items: center; gap: 8px;">
+            <img src="data:image/png;base64,{logo_base64}" style="height: 30px; width: auto; object-fit: contain;">
+            <span style="font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; font-size: 20px;">AI</span>
+        </div>
+    ''', unsafe_allow_html=True)
 
 with cols[1]:
     st.markdown("""

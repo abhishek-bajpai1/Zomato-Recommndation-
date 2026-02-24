@@ -24,6 +24,14 @@ FIREBASE_CONFIG = {
 def get_auth_html(button_text):
     config_json = json.dumps(FIREBASE_CONFIG)
     return f"""
+    <div id="g_id_onload"
+         data-client_id="578592166445-i1g04ud8ohcricufo8ctgemqv3d4k6vj.apps.googleusercontent.com"
+         data-context="signin"
+         data-ux_mode="popup"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         function parseJwt(token) {{
@@ -49,36 +57,16 @@ def get_auth_html(button_text):
                 window.parent.location.href = baseUrl + `?auth_success=true&user_name=${{name}}`;
             }}
         }}
-
-        window.onload = function () {{
-            google.accounts.id.initialize({{
-                client_id: "578592166445-i1g04ud8ohcricufo8ctgemqv3d4k6vj.apps.googleusercontent.com",
-                callback: handleCredentialResponse
-            }});
-        }}
-
-        function signIn() {{
-            google.accounts.id.prompt(); // Also display the One Tap dialog
-            // Or explicitly trigger the popup/redirect
-            google.accounts.id.requestCode(); 
-        }}
-        
-        // Simpler approach for the button click:
-        function triggerGoogleLogin() {{
-            google.accounts.id.prompt();
-        }}
     </script>
-    <div style="padding: 0 5px;">
-        <button onclick="triggerGoogleLogin()" style="
-            background: white; color: #757575; border: 1px solid #ddd;
-            border-radius: 12px; padding: 12px 24px; font-weight: 600;
-            display: flex; align-items: center; justify-content: center;
-            gap: 12px; width: 100%; cursor: pointer; font-family: 'Outfit', sans-serif;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s;
-        ">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-            {button_text}
-        </button>
+    <div style="display: flex; justify-content: center; padding: 20px 0;">
+        <div class="g_id_signin"
+             data-type="standard"
+             data-shape="rectangular"
+             data-theme="outline"
+             data-text="signin_with"
+             data-size="large"
+             data-logo_alignment="left">
+        </div>
     </div>
     """
 

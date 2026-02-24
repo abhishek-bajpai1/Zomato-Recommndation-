@@ -32,18 +32,26 @@ def get_auth_html(button_text):
             firebase.initializeApp(firebaseConfig);
         }}
         const provider = new firebase.auth.GoogleAuthProvider();
-
-        function signIn() {{
-            firebase.auth().signInWithPopup(provider)
-                .then((result) => {{
+        
+        // Handle the redirect result when the page loads
+        firebase.auth().getRedirectResult()
+            .then((result) => {{
+                if (result.user) {{
                     const user = result.user;
                     const name = encodeURIComponent(user.displayName || user.email.split('@')[0]);
                     const baseUrl = window.parent.location.origin + window.parent.location.pathname;
+                    
+                    // Critical: Redirect the parent window to the app with success params
                     window.parent.location.href = baseUrl + `?auth_success=true&user_name=${{name}}`;
-                }}).catch((error) => {{
-                    console.error("Auth Error:", error);
-                    alert("Authentication failed: " + error.message);
-                }});
+                }}
+            }}).catch((error) => {{
+                console.error("Auth Redirect Error:", error);
+                // Don't alert here as it might show on initial page load
+            }});
+
+        function signIn() {{
+            // signInWithPopup is blocked in Streamlit iframes; using Redirect instead
+            firebase.auth().signInWithRedirect(provider);
         }}
     </script>
     <div style="padding: 0 5px;">

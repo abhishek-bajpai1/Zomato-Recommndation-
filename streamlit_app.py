@@ -255,6 +255,7 @@ st.markdown(f"""
         border: none !important;
         width: 100%;
         transition: 0.3s !important;
+        white-space: nowrap !important;
     }}
     .stButton > button:hover {{ transform: scale(1.02); opacity: 0.9; }}
 
@@ -274,6 +275,7 @@ st.markdown(f"""
         cursor: pointer;
         transition: 0.2s;
         margin-top: 15px;
+        white-space: nowrap !important;
     }}
     .google-btn:hover {{ background: #f8f8f8 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }}
 
@@ -285,6 +287,10 @@ st.markdown(f"""
         .pill-nav {{ display: none; }}
         .search-outer {{ margin-top: -40px; }}
         .hero-tagline {{ font-size: 34px !important; }}
+        .stButton > button {{
+            padding: 8px 10px !important;
+            font-size: 14px !important;
+        }}
     }}
     </style>
     """, unsafe_allow_html=True)

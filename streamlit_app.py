@@ -778,7 +778,10 @@ if df is not None:
 <span class="rating-badge">{row['rate (out of 5)']} ★</span>
 </div>
 <div style="color: var(--text-sub); font-size: 14px; margin-bottom: 8px;">{row['cuisines type']}</div>
-<div style="color: var(--text-sub); font-size: 13px; margin-bottom: 20px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div style="color: var(--text-sub); font-size: 13px;">{row['area']} • ₹{row['avg cost (two people)']} for two</div>
+    <a href="https://www.google.com/maps/search/?api=1&query={row['restaurant name'].replace(' ', '+')}+{row['area'].replace(' ', '+')}" target="_blank" style="color: #4285F4; text-decoration: none; font-size: 12px; font-weight: 600;">📍 View on Maps</a>
+</div>
 <div class="kpt-badge {health_class}">
 <span class="signal-dot {dot_class}"></span>
 Kitchen Status: {health_status}

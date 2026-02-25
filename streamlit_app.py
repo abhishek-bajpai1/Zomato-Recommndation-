@@ -79,14 +79,20 @@ def get_auth_html(button_text):
 st.set_page_config(page_title="Zomato AI", page_icon="🍴", layout="wide", initial_sidebar_state="collapsed")
 
 # 1. THEME MANAGEMENT
+if 'theme_choice' not in st.session_state:
+    st.session_state.theme_choice = "Premium Dark"
+
 with st.sidebar:
     st.title("Settings")
-    theme_choice = st.radio("UI Theme", ["Premium Dark", "Sleek Light"], index=0)
+    # Sync with header toggle
+    st.session_state.theme_choice = st.radio("UI Theme", ["Premium Dark", "Sleek Light"], 
+                                            index=0 if st.session_state.theme_choice == "Premium Dark" else 1,
+                                            key="sidebar_theme")
     st.divider()
     st.markdown("### About Zomato AI")
     st.info("Powering your cravings with real-time AI expert insights.")
 
-is_dark = theme_choice == "Premium Dark"
+is_dark = st.session_state.theme_choice == "Premium Dark"
 
 # Initialize Session State
 if 'logged_in' not in st.session_state:
@@ -407,18 +413,25 @@ if 'user_avatar' not in st.session_state:
     st.session_state.user_avatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80" # Default Male
 
 # --- NEW: USER PROFILE LOGIC ---
-if st.session_state.logged_in:
-    with st.sidebar:
-        st.markdown("---")
-        st.markdown("### 👤 Profile Settings")
-        selected_gender = st.radio("Choose Avatar", ["Male", "Female"], 
-                                  index=0 if "photo-1500648767791" in st.session_state.user_avatar else 1,
-                                  key="avatar_selector")
-        
+with st.sidebar:
+    st.markdown("---")
+    st.markdown("### 👤 Profile Settings")
+    
+    # Quick Gender Toggle for Avatars
+    if 'avatar_gender' not in st.session_state:
+        st.session_state.avatar_gender = "Male"
+    
+    selected_gender = st.radio("Choose Avatar", ["Male", "Female"], 
+                                index=0 if st.session_state.avatar_gender == "Male" else 1,
+                                key="avatar_selector")
+    
+    if selected_gender != st.session_state.avatar_gender:
+        st.session_state.avatar_gender = selected_gender
         if selected_gender == "Male":
             st.session_state.user_avatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80"
         else:
             st.session_state.user_avatar = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80"
+        st.rerun()
 
 # --- CSAO Logic Component ---
 def render_csao_rail():
@@ -477,21 +490,35 @@ with cols[1]:
 
 with cols[2]:
     if not st.session_state.logged_in:
-        auth_row = st.columns(2)
+        auth_row = st.columns([1, 1])
         with auth_row[0]:
-            if st.button("Log in", key="login_btn"):
+            if st.button("Log in", key="login_btn", use_container_width=True):
                 st.session_state.show_auth = 'login'
         with auth_row[1]:
-            if st.button("Sign up", key="signup_btn"):
+            if st.button("Sign up", key="signup_btn", use_container_width=True):
                 st.session_state.show_auth = 'signup'
     else:
-        st.markdown(f"""
-        <div style="display:flex; align-items:center; gap:12px; justify-content:flex-end;">
-            <span style="color:var(--text-main); font-weight:600;">{st.session_state.user_name}</span>
-            <div style="width:36px; height:36px; border-radius:50%; background: url('{st.session_state.user_avatar}'); background-size: cover; background-position: center; border: 2px solid var(--zomato-red);"></div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Logout", key="logout_btn"):
+        # ENHANCED PROFILE VIEW
+        prof_col1, prof_col2 = st.columns([3, 1])
+        with prof_col1:
+            # Theme Toggle Shorthand
+            theme_icon = "🌞" if is_dark else "🌙"
+            if st.button(theme_icon, key="header_theme_toggle", help="Switch Theme"):
+                st.session_state.theme_choice = "Sleek Light" if is_dark else "Premium Dark"
+                st.rerun()
+                
+            st.markdown(f"""
+            <div style="text-align: right; line-height: 1.2;">
+                <div style="color:var(--text-main); font-weight:700; font-size:15px;">{st.session_state.user_name}</div>
+                <div style="color:var(--zomato-red); font-size:11px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Gold Elite Member</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with prof_col2:
+            st.markdown(f"""
+            <div style="width:40px; height:40px; border-radius:50%; background: url('{st.session_state.user_avatar}'); background-size: cover; background-position: center; border: 2px solid var(--zomato-red); box-shadow: 0 4px 10px rgba(239, 79, 95, 0.3);"></div>
+            """, unsafe_allow_html=True)
+            
+        if st.button("Logout", key="logout_btn", use_container_width=True):
             st.session_state.logged_in = False
             st.rerun()
 

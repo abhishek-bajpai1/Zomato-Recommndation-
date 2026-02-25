@@ -404,38 +404,32 @@ if 'csao_engine' not in st.session_state:
 if 'cart' not in st.session_state:
     st.session_state.cart = []
 
-# --- NEW: SMART CART SIDEBAR (CSAO VISUALIZATION) ---
-if st.session_state.cart:
-    with st.sidebar:
+# --- CSAO Logic Component ---
+def render_csao_rail():
+    if st.session_state.cart:
         st.markdown("---")
-        st.markdown(f"### 🛒 Your Smart Cart <span class='cart-pill'>{len(st.session_state.cart)}</span>", unsafe_allow_html=True)
-        
-        for item in st.session_state.cart:
-            st.markdown(f"✅ **{item}**")
-        
-        if st.button("Clear Cart 🗑️"):
-            st.session_state.cart = []
-            st.rerun()
-        
-        st.markdown("---")
-        st.markdown("### 🌟 Meal Completion Add-Ons")
-        st.caption("Recommended to complete your meal experience")
+        st.markdown(f"### 🌟 Complete Your Meal <span class='cart-pill'>{len(st.session_state.cart)} in cart</span>", unsafe_allow_html=True)
+        st.caption("Intelligently recommended add-ons based on your current cart")
         
         # Fetch CSAO Recommendations
         csao_results = st.session_state.csao_engine.get_recommendations(st.session_state.cart)
         
-        for rec in csao_results['recommendations'][:4]:
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.markdown(f"<div class='csao-name'>{rec['name']}</div>", unsafe_allow_html=True)
-                st.markdown(f"<div class='csao-price'>₹{rec['data']['price']} • {rec['score']} Logic Score</div>", unsafe_allow_html=True)
-            with col2:
-                if st.button("Add", key=f"add_csao_{rec['name']}"):
+        # Horizontal Rail UI
+        st.markdown('<div class="csao-rail">', unsafe_allow_html=True)
+        cols = st.columns(min(len(csao_results['recommendations']), 6))
+        for i, rec in enumerate(csao_results['recommendations'][:len(cols)]):
+            with cols[i]:
+                st.markdown(f"""
+                <div class="csao-item">
+                    <div class="csao-name">{rec['name']}</div>
+                    <div class="csao-price">₹{rec['data']['price']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("Add", key=f"add_csao_main_{rec['name']}"):
                     st.session_state.cart.append(rec['name'])
                     st.rerun()
-            st.markdown("<br>", unsafe_allow_html=True)
-        
-        st.caption(f"Inference Latency: {csao_results['latency_ms']}ms")
+        st.markdown('</div>', unsafe_allow_html=True)
+        st.caption(f"Inference Latency: {csao_results['latency_ms']}ms | Context Score: {csao_results['latency_ms']}ms")
 
 # Initialize Recommendation Engine
 if 'ai_engine' not in st.session_state:
@@ -683,40 +677,55 @@ if df is not None:
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if submit or st.session_state.selected_category == "Trending":
-        with st.spinner("Zomato AI is analyzing the best matches for you..."):
-            if st.session_state.selected_category == "Trending":
-                ranked_results = get_trending_restaurants(df, top_n=3)
-                filtered_df = ranked_results # To bypass empty check
-                user_query = "What are the hottest, highest-rated trending restaurants in Bangalore right now?"
-            else:
-                c_filter = None if cuisine == "All Cuisines" else cuisine
-                loc_query = None if location == "Any Location" else location
+    if submit or st.session_state.selected_category == "Trending" or 'last_results' in st.session_state:
+        # Check if we should use cached results or run new ones
+        if submit or st.session_state.selected_category == "Trending":
+            with st.spinner("Zomato AI is analyzing the best matches for you..."):
+                if st.session_state.selected_category == "Trending":
+                    ranked_results = get_trending_restaurants(df, top_n=3)
+                    filtered_df = ranked_results # To bypass empty check
+                    user_query = "What are the hottest, highest-rated trending restaurants in Bangalore right now?"
+                else:
+                    c_filter = None if cuisine == "All Cuisines" else cuisine
+                    loc_query = None if location == "Any Location" else location
+                    
+                    filtered_df = filter_restaurants(df, price=price_val, place=loc_query, rating=rating_num, cuisine=c_filter)
+                    ranked_results = rank_restaurants(filtered_df).head(3)
+                    user_query = f"I'm looking for {cuisine} food in {location} with a {budget_label} budget."
                 
-                filtered_df = filter_restaurants(df, price=price_val, place=loc_query, rating=rating_num, cuisine=c_filter)
-                ranked_results = rank_restaurants(filtered_df).head(3)
-                user_query = f"I'm looking for {cuisine} food in {location} with a {budget_label} budget."
+                if not filtered_df.empty:
+                    # GET REAL AI INSIGHTS
+                    ai_expert_content = st.session_state.ai_engine.get_recommendations(user_query, ranked_results)
+                    # PERSIST FOR RERUNS (Add to Cart logic)
+                    st.session_state.last_results = ranked_results
+                    st.session_state.last_ai_content = ai_expert_content
+                    st.session_state.last_query_title = "🔥 Trending Now" if st.session_state.selected_category == "Trending" else "Expert AI Match Score"
+        else:
+            # Load from Session State
+            ranked_results = st.session_state.last_results
+            ai_expert_content = st.session_state.last_ai_content
+            query_title = st.session_state.last_query_title
+            filtered_df = ranked_results # For compatibility
+
+        if not filtered_df.empty:
+            # RENDER RESULTS
+            query_title = "🔥 Trending Now" if st.session_state.selected_category == "Trending" else "Expert AI Match Score"
+            st.markdown(f'<div style="padding: 0 10% 80px 10%;"><h2 style="color:var(--text-main); margin-bottom:20px; font-weight:800; letter-spacing:-1px;">{query_title}</h2>', unsafe_allow_html=True)
             
-            if filtered_df.empty:
-                st.error("No matches found for this combination. Try expanding your search area or budget!")
-            else:
-                # GET REAL AI INSIGHTS
-                ai_expert_content = st.session_state.ai_engine.get_recommendations(user_query, ranked_results)
-                
-                # AI INSIGHT PANEL
-                st.markdown(f'<div style="padding: 0 10% 80px 10%;"><h2 style="color:var(--text-main); margin-bottom:20px; font-weight:800; letter-spacing:-1px;">{"🔥 Trending Now" if st.session_state.selected_category == "Trending" else "Expert AI Match Score"}</h2>', unsafe_allow_html=True)
-                
-                _, ai_box_col, _ = st.columns([0.1, 5, 0.1])
-                with ai_box_col:
-                    st.markdown(f"""
-                    <div style="background: {'rgba(255, 87, 34, 0.1)' if is_dark else '#f0f7ff'}; 
-                                padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); 
-                                border-left: 8px solid var(--zomato-red); margin-bottom: 40px;">
-                        <span style="font-size: 24px; margin-right: 15px;">🤖</span> 
-                        <span style="color: var(--text-main); font-weight: 700; font-size: 18px;">{'AI Trend Analysis:' if st.session_state.selected_category == 'Trending' else 'Personalized Concierge Insight:'}</span>
-                        <p style="color: var(--text-main); line-height: 1.6; margin-top: 15px; font-size: 16px;">{ai_expert_content[:450]}...</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+            # --- CSAO RAIL PLACEMENT (Dynamic) ---
+            render_csao_rail()
+            
+            _, ai_box_col, _ = st.columns([0.1, 5, 0.1])
+            with ai_box_col:
+                st.markdown(f"""
+                <div style="background: {'rgba(255, 87, 34, 0.1)' if is_dark else '#f0f7ff'}; 
+                            padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); 
+                            border-left: 8px solid var(--zomato-red); margin-bottom: 40px;">
+                    <span style="font-size: 24px; margin-right: 15px;">🤖</span> 
+                    <span style="color: var(--text-main); font-weight: 700; font-size: 18px;">{'AI Trend Analysis:' if st.session_state.selected_category == 'Trending' else 'Personalized Concierge Insight:'}</span>
+                    <p style="color: var(--text-main); line-height: 1.6; margin-top: 15px; font-size: 16px;">{ai_expert_content[:450]}...</p>
+                </div>
+                """, unsafe_allow_html=True)
                 
                 res_cols = st.columns(3, gap="medium")
                 # Verified high-quality food photography IDs from Unsplash

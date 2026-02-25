@@ -11,6 +11,7 @@ import base64
 from phase5.kpt_engine import KPTEngine, get_kpt_confidence
 from phase5.shadow_kpt import ShadowKPTEstimator, fuse_kpt_signals
 import random
+from phase6_csao.csao_engine import CSAOEngine
 
 # Load environment variables FIRST
 load_dotenv(override=True)
@@ -292,6 +293,36 @@ st.markdown(f"""
         color: var(--text-sub);
     }}
 
+    /* CSAO Super Rail Styles */
+    .csao-rail {{
+        display: flex;
+        overflow-x: auto;
+        gap: 15px;
+        padding: 15px 0;
+        scrollbar-width: thin;
+    }}
+    .csao-item {{
+        min-width: 140px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 10px;
+        text-align: center;
+        transition: transform 0.2s;
+    }}
+    .csao-item:hover {{ transform: scale(1.05); border-color: var(--zomato-red); }}
+    .csao-name {{ font-weight: 700; font-size: 12px; color: var(--text-main); margin-bottom: 4px; }}
+    .csao-price {{ color: var(--text-sub); font-size: 11px; }}
+
+    .cart-pill {{
+        background: var(--zomato-red);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 12px;
+    }}
+
     /* Auth Overlay as Elegant Card */
     .auth-card {{
         background: var(--card-bg);
@@ -368,6 +399,43 @@ if 'kpt_engine' not in st.session_state:
     st.session_state.kpt_engine = KPTEngine()
 if 'shadow_estimator' not in st.session_state:
     st.session_state.shadow_estimator = ShadowKPTEstimator()
+if 'csao_engine' not in st.session_state:
+    st.session_state.csao_engine = CSAOEngine()
+if 'cart' not in st.session_state:
+    st.session_state.cart = []
+
+# --- NEW: SMART CART SIDEBAR (CSAO VISUALIZATION) ---
+if st.session_state.cart:
+    with st.sidebar:
+        st.markdown("---")
+        st.markdown(f"### 🛒 Your Smart Cart <span class='cart-pill'>{len(st.session_state.cart)}</span>", unsafe_allow_html=True)
+        
+        for item in st.session_state.cart:
+            st.markdown(f"✅ **{item}**")
+        
+        if st.button("Clear Cart 🗑️"):
+            st.session_state.cart = []
+            st.rerun()
+        
+        st.markdown("---")
+        st.markdown("### 🌟 Meal Completion Add-Ons")
+        st.caption("Recommended to complete your meal experience")
+        
+        # Fetch CSAO Recommendations
+        csao_results = st.session_state.csao_engine.get_recommendations(st.session_state.cart)
+        
+        for rec in csao_results['recommendations'][:4]:
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.markdown(f"<div class='csao-name'>{rec['name']}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='csao-price'>₹{rec['data']['price']} • {rec['score']} Logic Score</div>", unsafe_allow_html=True)
+            with col2:
+                if st.button("Add", key=f"add_csao_{rec['name']}"):
+                    st.session_state.cart.append(rec['name'])
+                    st.rerun()
+            st.markdown("<br>", unsafe_allow_html=True)
+        
+        st.caption(f"Inference Latency: {csao_results['latency_ms']}ms")
 
 # Initialize Recommendation Engine
 if 'ai_engine' not in st.session_state:
@@ -712,6 +780,15 @@ Kitchen Status: {health_status}
 </div>
 </div>
 """, unsafe_allow_html=True)
+
+                        # Handle "Add to Cart" click simulation
+                        if st.button(f"Add Special From {row['restaurant name']} 🍱", key=f"add_{row['restaurant name']}"):
+                            # Mock adding a relevant item based on cuisine
+                            item_to_add = "Biryani" if "Biryani" in row['cuisines type'] or "Indian" in row['cuisines type'] else "Burger"
+                            if "Pizza" in row['cuisines type']: item_to_add = "Pizza"
+                            
+                            st.session_state.cart.append(item_to_add)
+                            st.rerun()
                         
                         with st.expander("⚡ KPT Signal Intelligence"):
                             st.markdown(f"""

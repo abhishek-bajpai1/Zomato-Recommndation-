@@ -403,6 +403,22 @@ if 'csao_engine' not in st.session_state:
     st.session_state.csao_engine = CSAOEngine()
 if 'cart' not in st.session_state:
     st.session_state.cart = []
+if 'user_avatar' not in st.session_state:
+    st.session_state.user_avatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80" # Default Male
+
+# --- NEW: USER PROFILE LOGIC ---
+if st.session_state.logged_in:
+    with st.sidebar:
+        st.markdown("---")
+        st.markdown("### 👤 Profile Settings")
+        selected_gender = st.radio("Choose Avatar", ["Male", "Female"], 
+                                  index=0 if "photo-1500648767791" in st.session_state.user_avatar else 1,
+                                  key="avatar_selector")
+        
+        if selected_gender == "Male":
+            st.session_state.user_avatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80"
+        else:
+            st.session_state.user_avatar = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80"
 
 # --- CSAO Logic Component ---
 def render_csao_rail():
@@ -472,7 +488,7 @@ with cols[2]:
         st.markdown(f"""
         <div style="display:flex; align-items:center; gap:12px; justify-content:flex-end;">
             <span style="color:var(--text-main); font-weight:600;">{st.session_state.user_name}</span>
-            <div style="width:36px; height:36px; border-radius:50%; background:var(--zomato-red);"></div>
+            <div style="width:36px; height:36px; border-radius:50%; background: url('{st.session_state.user_avatar}'); background-size: cover; background-position: center; border: 2px solid var(--zomato-red);"></div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Logout", key="logout_btn"):

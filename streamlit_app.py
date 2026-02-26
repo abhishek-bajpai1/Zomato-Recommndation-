@@ -18,19 +18,21 @@ load_dotenv(override=True)
 
 # 0. GLOBAL CONFIG & AUTH BRIDGE
 FIREBASE_CONFIG = {
-    "apiKey": "AIzaSyDRJ7W10gM2ZFUetfmAo6QF2Lgcdq0E1Vk",
-    "authDomain": "zomatoai-3cf37.firebaseapp.com",
-    "projectId": "zomatoai-3cf37",
-    "storageBucket": "zomatoai-3cf37.firebasestorage.app",
-    "messagingSenderId": "578592166445",
-    "appId": "1:578592166445:web:8c2e5c67a1c226bb7ddea4",
+    "apiKey": os.getenv("FIREBASE_API_KEY"),
+    "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN"),
+    "projectId": os.getenv("FIREBASE_PROJECT_ID"),
+    "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET"),
+    "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
+    "appId": os.getenv("FIREBASE_APP_ID"),
 }
+
+GOOGLE_CLIENT_ID = os.getenv("FIREBASE_G_CLIENT_ID")
 
 def get_auth_html(button_text):
     config_json = json.dumps(FIREBASE_CONFIG)
     return f"""
     <div id="g_id_onload"
-         data-client_id="578592166445-i1g04ud8ohcricufo8ctgemqv3d4k6vj.apps.googleusercontent.com"
+         data-client_id="{GOOGLE_CLIENT_ID}"
          data-context="signin"
          data-ux_mode="popup"
          data-callback="handleCredentialResponse"
